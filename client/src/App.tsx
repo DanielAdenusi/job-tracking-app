@@ -1,31 +1,78 @@
-import { useEffect, useState } from "react";
-import type { User } from "firebase/auth";
-import { listenToAuthChanges } from "./features/auth/authService";
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
+import { Route, Routes } from "react-router";
+
+import { AppLayout } from "./layout/AppLayout";
+import { AuthLayout } from "./layout/AuthLayout";
+import { KanbanPage } from "./pages/Kanban";
+import { DashboardPage } from "./pages/Dashboard";
+import { ApplicationsPage } from "./pages/Applications";
+import { NewApplicationPage } from "./pages/NewApplication";
+import { ApplicationDetailsPage } from "./pages/ApplicationDetails";
+import { SettingsPage } from "./pages/Settings";
+import { NotFoundPage } from "./pages/NotFound";
+import { HomePage } from "./pages/Home";
+import { LoginPage } from "./pages/Auth/Login";
+import { SignUpPage } from "./pages/Auth/SignUp";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { EditApplicationPage } from "./pages/EditApplication";
 
 function App() {
-	const [user, setUser] = useState<User | null>(null);
-	const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+	return (
+		<Routes>
+			<Route path="/" element={<HomePage />} />
 
-	useEffect(() => {
-		const unsubscribe = listenToAuthChanges((firebaseUser) => {
-			setUser(firebaseUser);
-			setIsCheckingAuth(false);
-		});
+			<Route
+				element={
+					<AuthLayout
+						headerTitle="Log in to your account"
+						headerSubtitle="Don't have an account?"
+						headerLinkText="Sign up"
+						linkTo="/signup"
+					/>
+				}
+			>
+				<Route path="/login" element={<LoginPage />} />
+			</Route>
 
-		return () => unsubscribe();
-	}, []);
+			<Route
+				element={
+					<AuthLayout
+						headerTitle="Sign up to get started"
+						headerSubtitle="Already have an account?	"
+						headerLinkText="Log in"
+						linkTo="/login"
+					/>
+				}
+			>
+				<Route path="/signup" element={<SignUpPage />} />
+			</Route>
 
-	if (isCheckingAuth) {
-		return (
-			<main className="loadingPage">
-				<p>Checking login...</p>
-			</main>
-		);
-	}
+			<Route element={<ProtectedRoute />}>
+				<Route element={<AppLayout />}>
+					<Route path="/dashboard" element={<DashboardPage />} />
+					<Route
+						path="/applications"
+						element={<ApplicationsPage />}
+					/>
+					<Route
+						path="/applications/new"
+						element={<NewApplicationPage />}
+					/>
+					<Route
+						path="/applications/:id"
+						element={<ApplicationDetailsPage />}
+					/>
+					<Route
+						path="/applications/:id/edit"
+						element={<EditApplicationPage />}
+					/>
+					<Route path="/kanban" element={<KanbanPage />} />
+					<Route path="/settings" element={<SettingsPage />} />
+				</Route>
+			</Route>
 
-	return user ? <DashboardPage /> : <LoginPage />;
+			<Route path="*" element={<NotFoundPage />} />
+		</Routes>
+	);
 }
 
 export default App;

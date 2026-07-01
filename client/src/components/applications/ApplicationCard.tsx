@@ -1,10 +1,8 @@
-import type {
-	ApplicationStatus,
-	JobApplication,
-} from "../../types/application";
+import type { Application } from "../../types/application";
+import type { ApplicationStatus } from "../../constants/applicationOptions";
 
 type ApplicationCardProps = {
-	application: JobApplication;
+	application: Application;
 	onStatusChange: (id: string, status: ApplicationStatus) => void;
 };
 
@@ -38,8 +36,8 @@ export default function ApplicationCard({
 
 			{application.notes && <p>{application.notes}</p>}
 
-			{application.job_url && (
-				<a href={application.job_url} target="_blank" rel="noreferrer">
+			{application.jobUrl && (
+				<a href={application.jobUrl} target="_blank" rel="noreferrer">
 					View job post
 				</a>
 			)}

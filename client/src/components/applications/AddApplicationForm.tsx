@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { createApplication } from "../../features/applications/applicationService";
-import type {
-	ApplicationStatus,
-	JobApplication,
-} from "../../types/application";
+import { createApplication } from "../../services/applicationsApi";
+import type { Application } from "../../types/application";
+import type { ApplicationStatus } from "../../constants/applicationOptions";
 
 type AddApplicationFormProps = {
-	onApplicationCreated: (application: JobApplication) => void;
+	onApplicationCreated: (application: Application) => void;
 };
 
 const statuses: ApplicationStatus[] = [

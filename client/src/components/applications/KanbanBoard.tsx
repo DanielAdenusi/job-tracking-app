@@ -1,11 +1,9 @@
-import type {
-	ApplicationStatus,
-	JobApplication,
-} from "../../types/application";
+import type { Application } from "../../types/application";
+import type { ApplicationStatus } from "../../constants/applicationOptions";
 import ApplicationCard from "./ApplicationCard";
 
 type KanbanBoardProps = {
-	applications: JobApplication[];
+	applications: Application[];
 	onStatusChange: (id: string, status: ApplicationStatus) => void;
 };
 
