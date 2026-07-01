@@ -1,32 +1,16 @@
-import { NavLink, Outlet, useNavigate } from "react-router";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../auth/useAuth";
-
-const navItems = [
-	{
-		label: "Dashboard",
-		path: "/dashboard",
-	},
-	{
-		label: "Applications",
-		path: "/applications",
-	},
-	{
-		label: "Kanban",
-		path: "/kanban",
-	},
-	{
-		label: "Add Application",
-		path: "/applications/new",
-	},
-	{
-		label: "Settings",
-		path: "/settings",
-	},
-];
+import { PAGE_HEADERS } from "../constants/pageHeaders";
 
 export function AppLayout() {
 	const { user, logout } = useAuth();
 	const navigate = useNavigate();
+
+	const location = useLocation();
+
+	const currentPage =
+		PAGE_HEADERS.find((item) => location.pathname.startsWith(item.path))
+			?.label || "Job Tracker";
 
 	async function handleLogout() {
 		try {
@@ -59,7 +43,7 @@ export function AppLayout() {
 					className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1"
 					aria-label="Main navigation"
 				>
-					{navItems.map((item) => (
+					{PAGE_HEADERS.map((item) => (
 						<NavLink
 							key={item.path}
 							to={item.path}
@@ -85,7 +69,7 @@ export function AppLayout() {
 							Progress dashboard
 						</p>
 						<h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-950">
-							Track your job search
+							{currentPage}
 						</h1>
 					</div>
 

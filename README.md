@@ -1,39 +1,84 @@
-# Job Tracking App
+# Job Tracker
 
-A full-stack job application tracker for saving roles, tracking progress, and managing follow-ups through a simple kanban-style dashboard.
+A full-stack, mobile-first job application tracking web app for saving roles, tracking progress, managing follow-ups, and viewing job search activity through a dashboard and Kanban-style pipeline.
+
+## Overview
+
+Job Tracker helps users manage their job search in one place. Users can sign in with Google, add applications, track statuses, set follow-up dates, update priorities, view live dashboard stats, and move roles through a Kanban board.
+
+The project is built as a responsive web app with a PWA-friendly structure, making it usable across desktop and mobile devices.
 
 ## Features
 
-- Google sign-in with Firebase Authentication
-- Per-user application records stored in PostgreSQL
-- Dashboard stats for total, active, and interviewing applications
-- Kanban board grouped by application status
-- Add applications with company, role, location, salary, notes, dates, and job URL
-- Update application status through the API
+- Google sign-in with Firebase Auth
+- Protected frontend routes
+- User-specific application data
+- Add, edit, delete, and view job applications
+- Application status pipeline
+- Kanban board for tracking progress
+- Dashboard with live PostgreSQL stats
+- Search, filter, and sort applications
+- URL-based application filters
+- Follow-up tracking
+- Priority tracking
+- Contact and notes fields
+- Responsive Tailwind CSS UI
+- Express API with Firebase ID token verification
+- PostgreSQL database with SQL migrations and constraints
+- Optimistic UI updates for status changes and deletes
 
 ## Tech Stack
 
-**Client**
+### Client
 
 - React
 - TypeScript
 - Vite
-- Firebase client SDK
-- oxlint
+- Tailwind CSS
+- React Router
+- Firebase Auth
 
-**Server**
+### Server
 
 - Node.js
 - Express
 - PostgreSQL
 - Firebase Admin SDK
 
+### Database
+
+- PostgreSQL
+- SQL migrations
+- User-scoped application records
+- Database constraints for statuses, priorities, work modes, employment types, URLs, and contact emails
+
 ## Project Structure
 
 ```text
-job-tracking-app/
-  client/   React/Vite frontend
-  server/   Express API and PostgreSQL schema
+job-tracker/
+  client/
+    src/
+      auth/
+      components/
+      constants/
+      layouts/
+      lib/
+      pages/
+      services/
+      types/
+  server/
+    scripts/
+    src/
+      constants/
+      controllers/
+      db/
+        migrations/
+        pool.js
+      middleware/
+      routes/
+      services/
+      utils/
+  README.md
 ```
 
 ## Prerequisites
@@ -61,42 +106,57 @@ Create `server/.env`:
 ```env
 PORT=5000
 CLIENT_URL=http://localhost:5173
-DATABASE_URL=postgresql://user:password@localhost:5432/job_tracking_app
+DATABASE_URL=postgresql://user:password@localhost:5432/job_tracker
 FIREBASE_PROJECT_ID=your_firebase_project_id
 FIREBASE_CLIENT_EMAIL=your_service_account_client_email
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nyour_private_key\n-----END PRIVATE KEY-----\n"
+```
+
+For GitHub, include safe example files only:
+
+```text
+client/.env.example
+server/.env.example
+```
+
+Do not commit real `.env` files.
+
+## Install Dependencies
+
+From the root folder:
+
+```powershell
+npm install
+npm install --prefix client
+npm install --prefix server
 ```
 
 ## Database Setup
 
-Run the schema against your PostgreSQL database:
+Run the migrations against your PostgreSQL database:
 
 ```powershell
-psql $env:DATABASE_URL -f server/db/schema.sql
+cd server
+npm run migrate
 ```
 
-The schema creates:
+The migrations create and manage:
 
-- `users`, keyed by Firebase UID
-- `applications`, linked to users and storing job details, status, notes, and dates
-
-## Install Dependencies
-
-Install the client dependencies:
-
-```powershell
-cd client
-npm install
-```
-
-Install the server dependencies:
-
-```powershell
-cd ../server
-npm install
-```
+- `users`, linked to Firebase users
+- `applications`, linked to users and storing job details, statuses, notes, and dates
+- `schema_migrations`, used to track which SQL migration files have already run
 
 ## Run Locally
+
+### Option 1: Run client and server together
+
+From the root folder:
+
+```powershell
+npm run dev
+```
+
+### Option 2: Run client and server separately
 
 Start the API:
 
@@ -119,7 +179,15 @@ By default:
 
 ## Available Scripts
 
-Client:
+### Root
+
+```powershell
+npm run dev
+npm run client
+npm run server
+```
+
+### Client
 
 ```powershell
 npm run dev
@@ -128,19 +196,44 @@ npm run lint
 npm run preview
 ```
 
-Server:
+### Server
 
 ```powershell
 npm run dev
 npm start
+npm run migrate
+```
+
+## Core Frontend Routes
+
+```text
+/login
+/dashboard
+/applications
+/applications/new
+/applications/:id
+/applications/:id/edit
+/kanban
+/settings
 ```
 
 ## API Routes
 
-Health and database checks:
+### Public
 
-- `GET /api/health`
-- `GET /api/db-test`
+```http
+GET /api/health
+```
+
+### Dashboard
+
+Requires a Firebase ID token.
+
+```http
+GET /api/dashboard/stats
+```
+
+### Applications
 
 Application routes require a Firebase ID token in the `Authorization` header:
 
@@ -150,25 +243,119 @@ Authorization: Bearer <firebase_id_token>
 
 Routes:
 
-- `GET /api/applications`
-- `POST /api/applications`
-- `GET /api/applications/:id`
-- `PUT /api/applications/:id`
-- `DELETE /api/applications/:id`
-- `PATCH /api/applications/:id/status`
-- `GET /api/applications/status/:status`
+```http
+GET    /api/applications
+GET    /api/applications/:id
+POST   /api/applications
+PATCH  /api/applications/:id
+PATCH  /api/applications/:id/status
+DELETE /api/applications/:id
+```
 
-Allowed statuses:
+## Allowed Application Statuses
 
-- `saved`
-- `applied`
-- `interviewing`
-- `offer`
-- `rejected`
-- `withdrawn`
+```text
+wishlist
+saved
+applied
+assessment
+interviewing
+offer
+rejected
+withdrawn
+```
 
-## Notes
+## Allowed Priorities
+
+```text
+low
+medium
+high
+```
+
+## Allowed Employment Types
+
+```text
+full_time
+part_time
+internship
+placement
+contract
+temporary
+freelance
+```
+
+## Allowed Work Modes
+
+```text
+remote
+hybrid
+onsite
+```
+
+## Authentication Flow
+
+1. The user signs in with Google through Firebase Auth.
+2. React receives a Firebase ID token.
+3. The frontend sends the token to the Express API.
+4. Express verifies the token with Firebase Admin.
+5. The backend creates or updates the matching PostgreSQL user.
+6. Application data is scoped to that authenticated user.
+
+## Key Implementation Details
 
 - The server automatically creates or updates a local `users` row after validating a Firebase token.
-- The client sends authenticated API requests through `client/src/lib/api.ts`.
-- The API uses `DATABASE_URL` from `server/.env` through `server/src/db/pool.js`.
+- The client sends authenticated API requests through `client/src/lib/apiFetch.ts`.
+- Application API calls are grouped in `client/src/services/applicationsApi.ts`.
+- Dashboard API calls are grouped in `client/src/services/dashboardApi.ts`.
+- PostgreSQL access goes through `server/src/db/pool.js`.
+- Backend application logic is split into routes, controllers, services, validation utilities, and middleware.
+- The dashboard reads live stats from PostgreSQL rather than calculating everything in the browser.
+- Application search, filtering, and sorting are handled on the frontend for the MVP.
+- Kanban status updates use optimistic UI updates and persist changes to PostgreSQL.
+
+## Manual Test Flow
+
+Use this checklist when testing the app locally:
+
+1. Sign out.
+2. Visit `/dashboard` and confirm it redirects to `/login`.
+3. Sign in with Google.
+4. Add a new application.
+5. View the application details.
+6. Edit the application.
+7. Change the application status from the applications list.
+8. Move the application from the Kanban board.
+9. Check that dashboard stats update.
+10. Search applications.
+11. Filter applications by status and priority.
+12. Sort applications.
+13. Delete a test application.
+14. Sign out.
+
+## Screenshots
+
+```md
+![Dashboard](./screenshots/dashboard.png)
+![Applications](./screenshots/applications.png)
+![Kanban](./screenshots/kanban.png)
+![Application Form](./screenshots/application-form.png)
+```
+
+## Future Improvements
+
+- PWA install support
+- Offline draft saving
+- Email reminders for follow-ups
+- Calendar integration
+- CV version tracking per application
+- Job description saving
+- Analytics charts
+- Drag-and-drop Kanban board
+- Export applications to CSV
+- Dark mode
+- Deployment to a production frontend, API, and PostgreSQL database
+
+## Project Status
+
+MVP in progress.

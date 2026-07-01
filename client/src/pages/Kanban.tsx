@@ -223,12 +223,12 @@ export function KanbanPage() {
 				</div>
 			) : (
 				<div className="overflow-x-auto pb-4">
-					<div className="grid min-w-[1400px] grid-cols-8 gap-4">
+					<div className="grid min-w-350 snap-x snap-mandatory grid-cols-8 gap-4">
 						{columns.map((column) => (
 							<section
 								key={column.status}
 								className={[
-									"flex max-h-[calc(100vh-220px)] min-h-[520px] flex-col rounded-3xl border p-4",
+									"flex max-h-[calc(100vh-220px)] min-h-130 snap-start flex-col rounded-3xl border p-4",
 									statusColumnClasses[column.status],
 								].join(" ")}
 							>
