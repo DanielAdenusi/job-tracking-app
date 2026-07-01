@@ -3,7 +3,6 @@ import type { User } from "firebase/auth";
 import { listenToAuthChanges } from "./features/auth/authService";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
-import "./App.css";
 
 function App() {
 	const [user, setUser] = useState<User | null>(null);
