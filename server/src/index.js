@@ -2,8 +2,10 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import applicationsRoutes from "./routes/applications.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
 import { pool } from "./db/pool.js";
 import { requireAuth } from "./middleware/requireAuth.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 dotenv.config();
 
@@ -42,9 +44,7 @@ app.get("/api/health", (req, res) => {
 	});
 });
 
-app.use("/api/applications", applicationsRoutes);
-
-router.get("/", requireAuth, async (req, res) => {
+app.get("/", requireAuth, async (req, res) => {
 	const result = await pool.query(
 		`
     SELECT *
@@ -58,10 +58,13 @@ router.get("/", requireAuth, async (req, res) => {
 	res.json(result.rows);
 });
 
+app.use("/api/applications", applicationsRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+
+app.use(errorHandler);
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
 	console.log(`API running on port ${PORT}`);
 });
-
-export default router;

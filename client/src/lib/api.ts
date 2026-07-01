@@ -2,28 +2,51 @@ import { auth } from "./firebase";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export async function apiFetch(path: string, options: RequestInit = {}) {
-	const user = auth.currentUser;
+type ApiFetchOptions = RequestInit & {
+	requireAuth?: boolean;
+};
 
-	if (!user) {
-		throw new Error("You must be logged in");
+export async function apiFetch<T>(
+	path: string,
+	options: ApiFetchOptions = {},
+): Promise<T> {
+	const { requireAuth = true, headers, ...fetchOptions } = options;
+
+	const requestHeaders = new Headers(headers);
+
+	if (!(fetchOptions.body instanceof FormData)) {
+		requestHeaders.set("Content-Type", "application/json");
 	}
 
-	const token = await user.getIdToken();
+	if (requireAuth) {
+		const user = auth.currentUser;
+
+		if (!user) {
+			throw new Error("You must be logged in to perform this action.");
+		}
+
+		const token = await user.getIdToken();
+
+		requestHeaders.set("Authorization", `Bearer ${token}`);
+	}
 
 	const response = await fetch(`${API_URL}${path}`, {
-		...options,
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${token}`,
-			...options.headers,
-		},
+		...fetchOptions,
+		headers: requestHeaders,
 	});
 
-	if (!response.ok) {
-		const error = await response.json().catch(() => null);
-		throw new Error(error?.message || "API request failed");
+	if (response.status === 204) {
+		return undefined as T;
 	}
 
-	return response.json();
+	const data = await response.json().catch(() => null);
+
+	if (!response.ok) {
+		const message =
+			data?.message || `Request failed with status ${response.status}`;
+
+		throw new Error(message);
+	}
+
+	return data as T;
 }

@@ -12,4 +12,13 @@
 	--color-accent-800: #155e75;
 	--color-accent-900: #164e63;
 	--color-accent-950: #083344;
+
+	--font-sans:
+		"Inter var", "Inter Fallback", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+	body {
+		@apply font-sans;
+	}
 }

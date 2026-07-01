@@ -1,25 +1,41 @@
-export type ApplicationStatus =
-	| "saved"
-	| "applied"
-	| "interviewing"
-	| "offer"
-	| "rejected"
-	| "withdrawn";
+import type {
+	ApplicationPriority,
+	ApplicationStatus,
+	EmploymentType,
+	WorkMode,
+} from "../constants/applicationOptions";
 
-export type JobApplication = {
+export type Application = {
 	id: string;
-	user_id: string;
+	userId: string;
+
 	company: string;
 	role: string;
 	location: string | null;
-	job_url: string | null;
+	jobUrl: string | null;
 	salary: string | null;
+
 	status: ApplicationStatus;
+	priority: ApplicationPriority;
+
+	employmentType: EmploymentType | null;
+	workMode: WorkMode | null;
+	source: string | null;
+
+	contactName: string | null;
+	contactEmail: string | null;
+
 	notes: string | null;
-	applied_at: string | null;
-	follow_up_at: string | null;
-	created_at: string;
-	updated_at: string;
+
+	appliedAt: string | null;
+	followUpAt: string | null;
+	deadlineAt: string | null;
+	interviewAt: string | null;
+	rejectedAt: string | null;
+	offerDeadlineAt: string | null;
+
+	createdAt: string;
+	updatedAt: string;
 };
 
 export type CreateApplicationInput = {
@@ -29,7 +45,19 @@ export type CreateApplicationInput = {
 	jobUrl?: string;
 	salary?: string;
 	status?: ApplicationStatus;
+	priority?: ApplicationPriority;
+	employmentType?: EmploymentType | "";
+	workMode?: WorkMode | "";
+	source?: string;
+	contactName?: string;
+	contactEmail?: string;
 	notes?: string;
 	appliedAt?: string;
 	followUpAt?: string;
+	deadlineAt?: string;
+	interviewAt?: string;
+	rejectedAt?: string;
+	offerDeadlineAt?: string;
 };
+
+export type UpdateApplicationInput = Partial<CreateApplicationInput>;
