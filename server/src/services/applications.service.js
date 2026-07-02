@@ -342,3 +342,16 @@ export async function deleteApplication(userId, applicationId) {
 
 	return result.rows.length > 0;
 }
+
+export async function deleteApplicationsByUser(userId) {
+	const result = await pool.query(
+		`
+    DELETE FROM applications
+    WHERE user_id = $1
+    RETURNING id
+    `,
+		[userId],
+	);
+
+	return result.rowCount;
+}

@@ -6,6 +6,7 @@ import {
 	updateApplication,
 	updateApplicationStatus,
 	deleteApplication,
+	deleteApplicationsByUser,
 } from "../services/applications.service.js";
 
 import { validateApplicationInput } from "../utils/validateApplication.js";
@@ -138,6 +139,16 @@ export async function deleteApplicationController(req, res, next) {
 		}
 
 		res.status(204).send();
+	} catch (error) {
+		next(error);
+	}
+}
+
+export async function deleteApplicationsController(req, res, next) {
+	try {
+		const deletedCount = await deleteApplicationsByUser(req.user.id);
+
+		res.json({ deletedCount });
 	} catch (error) {
 		next(error);
 	}

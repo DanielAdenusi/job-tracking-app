@@ -254,11 +254,11 @@ function getHeaderMeta(pathname: string, search: string): HeaderMeta {
 		};
 	}
 
-	if (pathname === "/account/settings") {
+	if (pathname === "/account" || pathname.startsWith("/account/")) {
 		return {
 			label: currentPage,
 			eyebrow: "Account",
-			description: "Manage your profile and preferences for the tracker.",
+			description: "Manage your account settings and job tracking preferences.",
 			chips: ["Protected"],
 			actions: [
 				{
@@ -303,10 +303,14 @@ function SidebarLink({
 	const location = useLocation();
 	const searchParams = new URLSearchParams(location.search);
 	const isApplicationLink = to === "/applications";
+	const isAccountLink = to === "/account/settings";
 	const isPipelineSelected =
 		location.pathname === "/applications" && searchParams.has("status");
 	const isActive = isApplicationLink
 		? location.pathname === to && !isPipelineSelected
+		: isAccountLink
+			? location.pathname === "/account" ||
+				location.pathname.startsWith("/account/")
 		: end
 			? location.pathname === to
 			: location.pathname === to ||

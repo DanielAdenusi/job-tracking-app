@@ -30,6 +30,7 @@ import {
 import { applicationPriorityBadgeClasses } from "../constants/applicationPriorityStyles";
 import { ConfirmationModal } from "../components/ConfirmationModal";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
+import { loadLocalSettings, tableRowOptions } from "../lib/accountSettings";
 
 import type { Application } from "../types/application";
 
@@ -48,6 +49,10 @@ const priorityRank: Record<ApplicationPriority, number> = {
 	medium: 2,
 	low: 1,
 };
+
+function getInitialPageSize() {
+	return loadLocalSettings().defaultTableRows;
+}
 
 function getStatusFilterFromParams(
 	searchParams: URLSearchParams,
@@ -73,21 +78,27 @@ function getPriorityFilterFromParams(
 	return "all";
 }
 
+function isSortOption(value: string): value is SortOption {
+	return (
+		value === "newest" ||
+		value === "oldest" ||
+		value === "company_az" ||
+		value === "company_za" ||
+		value === "follow_up" ||
+		value === "priority"
+	);
+}
+
 function getSortOptionFromParams(searchParams: URLSearchParams): SortOption {
 	const sort = searchParams.get("sort");
 
-	if (
-		sort === "newest" ||
-		sort === "oldest" ||
-		sort === "company_az" ||
-		sort === "company_za" ||
-		sort === "follow_up" ||
-		sort === "priority"
-	) {
+	if (sort && isSortOption(sort)) {
 		return sort;
 	}
 
-	return "newest";
+	const defaultSort = loadLocalSettings().defaultSort;
+
+	return isSortOption(defaultSort) ? defaultSort : "newest";
 }
 
 function formatOption(value: string) {
@@ -175,7 +186,7 @@ export function ApplicationsPage() {
 	const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
 	const [deleteTarget, setDeleteTarget] = useState<Application | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const [pageSize, setPageSize] = useState(10);
+	const [pageSize, setPageSize] = useState(getInitialPageSize);
 	const [currentPage, setCurrentPage] = useState(1);
 
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -645,7 +656,7 @@ export function ApplicationsPage() {
 								}
 								className="h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
 							>
-								{[10, 20, 50].map((size) => (
+								{tableRowOptions.map((size) => (
 									<option key={size} value={size}>
 										{size}
 									</option>

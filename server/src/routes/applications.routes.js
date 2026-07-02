@@ -9,6 +9,7 @@ import {
 	updateApplicationController,
 	updateApplicationStatusController,
 	deleteApplicationController,
+	deleteApplicationsController,
 } from "../controllers/applications.controller.js";
 
 const router = express.Router();
@@ -30,6 +31,10 @@ router.get("/status/:status", getApplicationsByStatusController);
 // POST /api/applications
 // Creates a new application for the logged-in user
 router.post("/", createApplicationController);
+
+// DELETE /api/applications
+// Deletes all applications for the logged-in user
+router.delete("/", deleteApplicationsController);
 
 // PATCH /api/applications/:id/status
 // Update the status of a specific application for the logged-in user

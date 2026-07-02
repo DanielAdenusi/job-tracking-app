@@ -16,8 +16,8 @@ export const PAGE_HEADERS = [
 		path: "/kanban",
 	},
 	{
-		label: "Account Settings",
-		path: "/account/settings",
+		label: "Account",
+		path: "/account",
 	},
 ] as const;
 

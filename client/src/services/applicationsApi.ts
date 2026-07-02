@@ -44,3 +44,9 @@ export function deleteApplication(id: string) {
 		method: "DELETE",
 	});
 }
+
+export function deleteAllApplications() {
+	return apiFetch<{ deletedCount: number }>("/applications", {
+		method: "DELETE",
+	});
+}

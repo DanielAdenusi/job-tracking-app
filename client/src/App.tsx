@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router";
+import { Navigate, Route, Routes } from "react-router";
 
 import { AppLayout } from "./layout/AppLayout";
 import { AuthLayout } from "./layout/AuthLayout";
@@ -67,7 +67,11 @@ function App() {
 					/>
 					<Route path="/kanban" element={<KanbanPage />} />
 					<Route
-						path="/account/settings"
+						path="/account"
+						element={<Navigate to="/account/settings" replace />}
+					/>
+					<Route
+						path="/account/:accountTab"
 						element={<AccountSettingsPage />}
 					/>
 				</Route>

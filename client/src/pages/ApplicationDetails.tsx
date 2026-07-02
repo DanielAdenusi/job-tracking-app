@@ -25,6 +25,7 @@ import {
 import type { ApplicationStatus } from "../constants/applicationOptions";
 import type { Application } from "../types/application";
 import { ConfirmationModal } from "../components/ConfirmationModal";
+import { APP_NAME } from "../constants/pageTitle";
 
 const STATUS_ADVANCE_ORDER: ApplicationStatus[] = [
 	"wishlist",
@@ -154,6 +155,17 @@ export function ApplicationDetailsPage() {
 		loadApplication();
 	}, [id]);
 
+	useEffect(() => {
+		if (isLoading) {
+			document.title = `Application Details - ${APP_NAME}`;
+			return;
+		}
+
+		document.title = application
+			? `${application.company} - ${APP_NAME}`
+			: `Application Not Found - ${APP_NAME}`;
+	}, [application, isLoading]);
+
 	async function confirmDelete() {
 		if (!application) return;
 
@@ -265,13 +277,13 @@ export function ApplicationDetailsPage() {
 					className="inline-flex h-8 items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-slate-950"
 				>
 					<span className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/40">
-						<ArrowLeft size={17} strokeWidth={2.5} />
+						<ArrowLeft size={16} strokeWidth={2.5} />
 					</span>
 					Back to Applications
 				</Link>
 
 				<span className="inline-flex items-center gap-2 text-sm font-bold text-slate-400">
-					<CalendarDays size={15} strokeWidth={2.4} />
+					<CalendarDays size={16} strokeWidth={2.4} />
 					Added {addedDate}
 				</span>
 			</div>
@@ -286,7 +298,7 @@ export function ApplicationDetailsPage() {
 				<div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 					<div className="min-w-0">
 						<div className="flex flex-wrap items-center gap-3">
-							<h2 className="text-2xl font-black tracking-tight text-slate-950 md:text-[30px] md:leading-9">
+							<h2 className="text-2xl font-bold tracking-tight text-slate-950 md:text-[30px] md:leading-9">
 								{application.role}
 							</h2>
 							<span
@@ -332,7 +344,7 @@ export function ApplicationDetailsPage() {
 								rel="noreferrer"
 								className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 shadow-sm shadow-slate-200/40 transition hover:-translate-y-0.5 hover:border-slate-300"
 							>
-								<ExternalLink size={17} strokeWidth={2.5} />
+								<ExternalLink size={16} strokeWidth={2.5} />
 								Open Post
 							</a>
 						)}
@@ -341,7 +353,7 @@ export function ApplicationDetailsPage() {
 							to={`/applications/${application.id}/edit`}
 							className="inline-flex h-11 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-bold text-white shadow-sm shadow-blue-600/25 transition hover:-translate-y-0.5 hover:bg-blue-700"
 						>
-							<Pencil size={17} strokeWidth={2.5} />
+							<Pencil size={16} strokeWidth={2.5} />
 							Edit Record
 						</Link>
 
@@ -351,7 +363,7 @@ export function ApplicationDetailsPage() {
 							aria-label={`Delete ${application.role}`}
 							className="grid h-11 w-11 place-items-center rounded-lg border border-red-100 bg-white text-red-500 shadow-sm shadow-slate-200/40 transition hover:-translate-y-0.5 hover:bg-red-50 hover:text-red-600"
 						>
-							<Trash2 size={17} strokeWidth={2.5} />
+							<Trash2 size={16} strokeWidth={2.5} />
 						</button>
 					</div>
 				</div>
@@ -359,9 +371,9 @@ export function ApplicationDetailsPage() {
 
 			<div className="grid min-w-0 max-w-full items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
 				<article className="h-full min-w-0 max-w-full rounded-xl border border-slate-200 bg-white px-6 py-7 shadow-sm shadow-slate-200/50">
-					<h3 className="flex items-center gap-3 text-lg font-black text-slate-950">
+					<h3 className="flex items-center gap-2 text-lg font-bold text-slate-950">
 						<BriefcaseBusiness
-							size={21}
+							size={18}
 							strokeWidth={2.4}
 							className="text-slate-400"
 						/>
@@ -370,7 +382,7 @@ export function ApplicationDetailsPage() {
 
 					<dl className="mt-7 grid gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
 						<div>
-							<dt className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+							<dt className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
 								Priority
 							</dt>
 							<dd className="mt-2">
@@ -381,46 +393,46 @@ export function ApplicationDetailsPage() {
 						</div>
 
 						<div>
-							<dt className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+							<dt className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
 								Work Mode
 							</dt>
-							<dd className="mt-2 text-sm font-black text-slate-950">
+							<dd className="mt-2 text-sm font-bold text-slate-950">
 								{formatOption(application.workMode)}
 							</dd>
 						</div>
 
 						<div>
-							<dt className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+							<dt className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
 								Employment
 							</dt>
-							<dd className="mt-2 text-sm font-black text-slate-950">
+							<dd className="mt-2 text-sm font-bold text-slate-950">
 								{formatOption(application.employmentType)}
 							</dd>
 						</div>
 
 						<div>
-							<dt className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+							<dt className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
 								Applied Date
 							</dt>
-							<dd className="mt-2 text-sm font-black text-slate-950">
+							<dd className="mt-2 text-sm font-bold text-slate-950">
 								{formatDate(application.appliedAt)}
 							</dd>
 						</div>
 
 						<div>
-							<dt className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+							<dt className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
 								Follow-up Date
 							</dt>
-							<dd className="mt-2 text-sm font-black text-slate-950">
+							<dd className="mt-2 text-sm font-bold text-slate-950">
 								{formatDate(application.followUpAt)}
 							</dd>
 						</div>
 
 						<div>
-							<dt className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+							<dt className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
 								Salary Range
 							</dt>
-							<dd className="mt-2 text-sm font-black text-slate-950">
+							<dd className="mt-2 text-sm font-bold text-slate-950">
 								{application.salary || "-"}
 							</dd>
 						</div>
@@ -428,9 +440,9 @@ export function ApplicationDetailsPage() {
 				</article>
 
 				<article className="flex h-full min-w-0 max-w-full flex-col rounded-xl border border-slate-200 bg-white px-6 py-7 shadow-sm shadow-slate-200/50">
-					<h3 className="flex items-center gap-3 text-lg font-black text-slate-950">
+					<h3 className="flex items-center gap-2 text-lg font-bold text-slate-950">
 						<MessageSquare
-							size={21}
+							size={18}
 							strokeWidth={2.4}
 							className="text-slate-400"
 						/>
@@ -467,7 +479,7 @@ export function ApplicationDetailsPage() {
 									<div className="flex flex-wrap items-center gap-2">
 										<p
 											className={[
-												"text-sm font-black",
+												"text-sm font-bold",
 												isCurrentStatus
 													? "text-slate-950"
 													: "text-slate-600",
@@ -512,9 +524,9 @@ export function ApplicationDetailsPage() {
 				</article>
 
 				<article className="grid min-w-0 max-w-full gap-5 overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/50 xl:col-span-2">
-					<h3 className="flex items-center gap-3 text-lg font-black text-slate-950">
+					<h3 className="flex items-center gap-2 text-lg font-bold text-slate-950">
 						<FileText
-							size={21}
+							size={18}
 							strokeWidth={2.4}
 							className="text-slate-400"
 						/>

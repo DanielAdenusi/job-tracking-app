@@ -26,4 +26,101 @@
 	body {
 		@apply font-sans;
 	}
+
+	html[data-font-size="small"] {
+		font-size: 14px;
+	}
+
+	html[data-font-size="large"] {
+		font-size: 18px;
+	}
+
+	html[data-theme="dark"] body {
+		background: #0f172a;
+		color: #e2e8f0;
+	}
+
+	html[data-theme="dark"] .bg-slate-50,
+	html[data-theme="dark"] .app-shell {
+		background-color: #0f172a;
+	}
+
+	html[data-theme="dark"] .bg-white,
+	html[data-theme="dark"] .bg-white\/90 {
+		background-color: #111827;
+	}
+
+	html[data-theme="dark"] .bg-slate-100,
+	html[data-theme="dark"] .bg-slate-50 {
+		background-color: #1e293b;
+	}
+
+	html[data-theme="dark"] .text-slate-950,
+	html[data-theme="dark"] .text-slate-900,
+	html[data-theme="dark"] .text-slate-800,
+	html[data-theme="dark"] .text-slate-700 {
+		color: #f8fafc;
+	}
+
+	html[data-theme="dark"] .text-slate-600,
+	html[data-theme="dark"] .text-slate-500,
+	html[data-theme="dark"] .text-slate-400 {
+		color: #cbd5e1;
+	}
+
+	html[data-theme="dark"] .border-slate-200,
+	html[data-theme="dark"] .ring-slate-200 {
+		border-color: #334155;
+		--tw-ring-color: #334155;
+	}
+
+	html[data-contrast="high"] body {
+		filter: contrast(1.08);
+	}
+
+	html[data-motion="reduced"] *,
+	html[data-motion="reduced"] *::before,
+	html[data-motion="reduced"] *::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+	}
+
+	html[data-focus="always"] :focus {
+		outline: 3px solid var(--app-accent, #2563eb);
+		outline-offset: 2px;
+	}
+
+	html[data-target-size="large"] button,
+	html[data-target-size="large"] a,
+	html[data-target-size="large"] input,
+	html[data-target-size="large"] select,
+	html[data-target-size="large"] textarea {
+		min-height: 2.75rem;
+	}
+
+	html[data-accent="teal"] {
+		--app-accent: #0f766e;
+	}
+
+	html[data-accent="blue"] {
+		--app-accent: #2563eb;
+	}
+
+	html[data-accent="purple"] {
+		--app-accent: #7c3aed;
+	}
+
+	html[data-accent="green"] {
+		--app-accent: #059669;
+	}
+
+	html[data-accent="orange"] {
+		--app-accent: #ea580c;
+	}
+
+	html[data-accent="pink"] {
+		--app-accent: #db2777;
+	}
 }

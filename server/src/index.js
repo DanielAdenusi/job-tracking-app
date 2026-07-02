@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import applicationsRoutes from "./routes/applications.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import { pool } from "./db/pool.js";
 import { requireAuth } from "./middleware/requireAuth.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -60,6 +61,7 @@ app.get("/", requireAuth, async (req, res) => {
 
 app.use("/api/applications", applicationsRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/user", userRoutes);
 
 app.use(errorHandler);
 
