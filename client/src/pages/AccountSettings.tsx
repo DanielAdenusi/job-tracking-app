@@ -5,7 +5,6 @@ import {
 	ArchiveRestore,
 	Bell,
 	BriefcaseBusiness,
-	Check,
 	CheckCircle2,
 	Database,
 	Download,
@@ -28,6 +27,13 @@ import { useAuth } from "../auth/useAuth";
 import { ConfirmationModal } from "../components/ConfirmationModal";
 import { useToast } from "../components/ToastProvider";
 import { useAccountSettings } from "../context/AccountSettingsContext";
+import { Button } from "../components/ui/Button";
+import {
+	Checkbox as UiCheckbox,
+	SegmentedControl as UiSegmentedControl,
+	Select,
+	Toggle as UiToggle,
+} from "../components/ui/FormControls";
 import {
 	APPLICATION_STATUSES,
 	EMPLOYMENT_TYPES,
@@ -235,28 +241,7 @@ function Toggle({
 	onChange: (checked: boolean) => void;
 	label: string;
 }) {
-	return (
-		<button
-			type="button"
-			role="switch"
-			aria-checked={checked}
-			onClick={() => onChange(!checked)}
-			className={[
-				"inline-flex h-8 w-14 shrink-0 items-center rounded-full p-1 transition",
-				checked ? "bg-blue-600" : "bg-slate-300",
-			].join(" ")}
-		>
-			<span className="sr-only">{label}</span>
-			<span
-				className={[
-					"grid h-6 w-6 place-items-center rounded-full bg-white text-blue-600 shadow-sm transition",
-					checked ? "translate-x-6" : "translate-x-0",
-				].join(" ")}
-			>
-				{checked && <Check size={13} strokeWidth={3} />}
-			</span>
-		</button>
-	);
+	return <UiToggle checked={checked} label={label} onChange={onChange} />;
 }
 
 function Checkbox({
@@ -268,17 +253,7 @@ function Checkbox({
 	onChange: (checked: boolean) => void;
 	label: string;
 }) {
-	return (
-		<label className="inline-flex items-center gap-3 text-sm font-semibold text-slate-600">
-			<input
-				type="checkbox"
-				checked={checked}
-				onChange={(event) => onChange(event.target.checked)}
-				className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-			/>
-			{label}
-		</label>
-	);
+	return <UiCheckbox checked={checked} label={label} onChange={onChange} />;
 }
 
 function SelectControl({
@@ -291,13 +266,12 @@ function SelectControl({
 	children: ReactNode;
 }) {
 	return (
-		<select
+		<Select
 			value={value}
 			onChange={(event) => onChange(event.target.value)}
-			className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
 		>
 			{children}
-		</select>
+		</Select>
 	);
 }
 
@@ -311,23 +285,11 @@ function SegmentedControl<T extends string>({
 	onChange: (value: T) => void;
 }) {
 	return (
-		<div className="inline-flex w-full rounded-lg bg-slate-100 p-1 md:w-auto">
-			{options.map((option) => (
-				<button
-					key={option.value}
-					type="button"
-					onClick={() => onChange(option.value)}
-					className={[
-						"h-9 flex-1 rounded-md px-3 text-sm font-bold transition md:flex-none",
-						value === option.value
-							? "bg-white text-blue-700 shadow-sm"
-							: "text-slate-500 hover:text-slate-950",
-					].join(" ")}
-				>
-					{option.label}
-				</button>
-			))}
-		</div>
+		<UiSegmentedControl
+			value={value}
+			options={options}
+			onChange={onChange}
+		/>
 	);
 }
 
@@ -341,14 +303,9 @@ function PrimaryButton({
 	disabled?: boolean;
 }) {
 	return (
-		<button
-			type="button"
-			onClick={onClick}
-			disabled={disabled}
-			className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-		>
+		<Button variant="secondary" onClick={onClick} disabled={disabled}>
 			{children}
-		</button>
+		</Button>
 	);
 }
 
@@ -363,19 +320,18 @@ function SaveSectionButton({
 }) {
 	return (
 		<div className="mt-5">
-			<button
-				type="button"
+			<Button
+				variant="secondary"
 				onClick={onClick}
 				disabled={disabled}
 				className={[
-					"inline-flex h-10 items-center justify-center rounded-lg border px-4 text-sm font-semibold transition",
 					disabled
-						? "cursor-not-allowed border-slate-100 text-slate-400"
-						: "border-slate-300 text-slate-800 hover:-translate-y-0.5 hover:bg-white hover:shadow-sm hover:ring-1 hover:ring-slate-200",
+						? "border-slate-100 text-slate-400"
+						: "border-slate-300",
 				].join(" ")}
 			>
 				{label}
-			</button>
+			</Button>
 		</div>
 	);
 }
@@ -1017,14 +973,14 @@ export function AccountSettingsPage() {
 							description="Account deletion is disabled until a Firebase re-authentication and backend account removal flow is added."
 							isDanger
 						>
-							<button
-								type="button"
+							<Button
 								disabled
-								className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-red-100 bg-red-50 px-4 text-sm font-bold text-red-300"
+								variant="dangerSoft"
+								icon={<Trash2 size={16} strokeWidth={2.4} />}
+								className="border-red-100 bg-red-50 text-red-300"
 							>
-								<Trash2 size={16} strokeWidth={2.4} />
 								Delete account
-							</button>
+							</Button>
 						</AccountRow>
 					</div>
 				)}
@@ -1126,32 +1082,25 @@ export function AccountSettingsPage() {
 									</SelectControl>
 								</SettingItem>
 
-								<div className="flex items-end">
-									<div>
-										<div className="flex items-center">
-											<Toggle
-												checked={
-													settings.browserNotificationsEnabled
-												}
-												onChange={(checked) =>
-													void handleBrowserNotificationToggle(
-														checked,
-													)
-												}
-												label="Browser notifications"
-											/>
-											<span className="ml-3 text-sm font-semibold text-slate-600">
-												Browser notifications
-											</span>
-										</div>
-										<p className="mt-2 text-xs font-medium text-slate-500">
-											Permission:{" "}
-											{formatOption(
-												notificationPermission,
-											)}
-										</p>
+								<SettingItem label="Browser notifications">
+									<div className="flex items-center">
+										<Toggle
+											checked={
+												settings.browserNotificationsEnabled
+											}
+											onChange={(checked) =>
+												void handleBrowserNotificationToggle(
+													checked,
+												)
+											}
+											label="Browser notifications"
+										/>
 									</div>
-								</div>
+									<p className="text-xs font-medium text-slate-500">
+										Permission:{" "}
+										{formatOption(notificationPermission)}
+									</p>
+								</SettingItem>
 							</SettingGrid>
 							<SaveSectionButton
 								disabled={
@@ -1429,29 +1378,31 @@ export function AccountSettingsPage() {
 									<RefreshCcw size={16} strokeWidth={2.4} />
 									Reset preferences
 								</PrimaryButton>
-								<button
-									type="button"
+								<Button
 									onClick={() =>
 										setDangerAction("clear_local_data")
 									}
-									className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+									variant="secondary"
+									icon={
+										<ArchiveRestore
+											size={16}
+											strokeWidth={2.4}
+										/>
+									}
 								>
-									<ArchiveRestore
-										size={16}
-										strokeWidth={2.4}
-									/>
 									Clear local cache
-								</button>
-								<button
-									type="button"
+								</Button>
+								<Button
 									onClick={() =>
 										setDangerAction("clear_applications")
 									}
-									className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 text-sm font-bold text-red-700 transition hover:bg-red-50"
+									variant="dangerSoft"
+									icon={
+										<Trash2 size={16} strokeWidth={2.4} />
+									}
 								>
-									<Trash2 size={16} strokeWidth={2.4} />
 									Clear all applications
-								</button>
+								</Button>
 							</div>
 						</AccountRow>
 					</div>

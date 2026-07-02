@@ -8,7 +8,7 @@ export function ProtectedRoute() {
 	if (isAuthLoading) {
 		return (
 			<main className="grid min-h-screen place-items-center bg-slate-50 p-5">
-				<div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm shadow-slate-200/40">
+				<div className="rounded-xl p-6 text-center shadow-sm shadow-slate-200/40">
 					<div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
 					<p className="mt-4 font-bold text-slate-700">
 						Checking session...

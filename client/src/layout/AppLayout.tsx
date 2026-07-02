@@ -258,7 +258,8 @@ function getHeaderMeta(pathname: string, search: string): HeaderMeta {
 		return {
 			label: currentPage,
 			eyebrow: "Account",
-			description: "Manage your account settings and job tracking preferences.",
+			description:
+				"Manage your account settings and job tracking preferences.",
 			chips: ["Protected"],
 			actions: [
 				{
@@ -311,10 +312,10 @@ function SidebarLink({
 		: isAccountLink
 			? location.pathname === "/account" ||
 				location.pathname.startsWith("/account/")
-		: end
-			? location.pathname === to
-			: location.pathname === to ||
-				location.pathname.startsWith(`${to}/`);
+			: end
+				? location.pathname === to
+				: location.pathname === to ||
+					location.pathname.startsWith(`${to}/`);
 
 	return (
 		<Link
@@ -610,7 +611,10 @@ export function AppLayout() {
 					</h1>
 				</div>
 
-				<div className="grid h-10 w-10 place-items-center rounded-full text-slate-500">
+				<Link
+					to="/account"
+					className="grid h-10 w-10 place-items-center rounded-full text-slate-500"
+				>
 					{user?.photoURL ? (
 						<img
 							src={user.photoURL}
@@ -620,7 +624,7 @@ export function AppLayout() {
 					) : (
 						<UserCircle size={24} strokeWidth={2.5} />
 					)}
-				</div>
+				</Link>
 			</header>
 
 			{isMobileNavOpen && (

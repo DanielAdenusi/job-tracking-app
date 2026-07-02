@@ -25,6 +25,9 @@ import {
 import type { ApplicationStatus } from "../constants/applicationOptions";
 import type { Application } from "../types/application";
 import { ConfirmationModal } from "../components/ConfirmationModal";
+import { Button } from "../components/ui/Button";
+import { IconButton } from "../components/ui/IconButton";
+import { Textarea } from "../components/ui/FormControls";
 import { APP_NAME } from "../constants/pageTitle";
 
 const STATUS_ADVANCE_ORDER: ApplicationStatus[] = [
@@ -357,14 +360,14 @@ export function ApplicationDetailsPage() {
 							Edit Record
 						</Link>
 
-						<button
-							type="button"
+						<IconButton
 							onClick={() => setIsDeleteModalOpen(true)}
-							aria-label={`Delete ${application.role}`}
-							className="grid h-11 w-11 place-items-center rounded-lg border border-red-100 bg-white text-red-500 shadow-sm shadow-slate-200/40 transition hover:-translate-y-0.5 hover:bg-red-50 hover:text-red-600"
+							label={`Delete ${application.role}`}
+							tone="danger"
+							className="h-11 w-11 border border-red-100 bg-white shadow-sm shadow-slate-200/40"
 						>
 							<Trash2 size={16} strokeWidth={2.5} />
-						</button>
+						</IconButton>
 					</div>
 				</div>
 			</article>
@@ -502,9 +505,10 @@ export function ApplicationDetailsPage() {
 										{dateText}
 									</p>
 									{isCurrentStatus && nextStatus && (
-										<button
-											type="button"
-											className="mt-2 text-xs font-bold text-blue-500 transition hover:text-blue-700"
+										<Button
+											variant="secondary"
+											size="sm"
+											className="mt-2 h-auto border-0 bg-transparent px-0 text-xs font-bold text-blue-500 shadow-none hover:translate-y-0 hover:bg-transparent hover:text-blue-700 hover:shadow-none"
 											onClick={() =>
 												handleMarkNextStatus(nextStatus)
 											}
@@ -515,7 +519,7 @@ export function ApplicationDetailsPage() {
 													nextStatus
 												]
 											}
-										</button>
+										</Button>
 									)}
 								</div>
 							);
@@ -533,7 +537,7 @@ export function ApplicationDetailsPage() {
 						Private Notes
 					</h3>
 
-					<textarea
+					<Textarea
 						value={notesDraft}
 						onChange={(event) => setNotesDraft(event.target.value)}
 						placeholder="Add notes about the role, required skills, or interview prep..."
@@ -542,24 +546,24 @@ export function ApplicationDetailsPage() {
 
 					<div className="flex min-w-0 flex-col-reverse gap-3 sm:flex-row sm:justify-end">
 						{notesHaveChanges && (
-							<button
-								type="button"
+							<Button
 								onClick={() => setIsDiscardNotesModalOpen(true)}
 								disabled={isSavingNotes}
-								className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+								variant="secondary"
+								size="sm"
 							>
 								Discard Changes
-							</button>
+							</Button>
 						)}
 
-						<button
-							type="button"
+						<Button
 							onClick={handleSaveNotes}
 							disabled={isSavingNotes || !notesHaveChanges}
-							className="inline-flex h-9 items-center justify-center rounded-lg bg-slate-100 px-4 text-sm font-bold text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+							variant="ghost"
+							size="sm"
 						>
 							{isSavingNotes ? "Saving..." : "Save Notes"}
-						</button>
+						</Button>
 					</div>
 				</article>
 			</div>

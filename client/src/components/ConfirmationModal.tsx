@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { AlertTriangle, X } from "lucide-react";
+import { Button } from "./ui/Button";
+import { IconButton } from "./ui/IconButton";
 
 type ConfirmationModalProps = {
 	isOpen: boolean;
@@ -181,40 +183,34 @@ export function ConfirmationModal({
 						</p>
 					</div>
 
-					<button
-						type="button"
+					<IconButton
 						onClick={onCancel}
 						disabled={isProcessing}
-						aria-label="Close confirmation"
-						className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+						label="Close confirmation"
+						className="h-9 w-9 shrink-0"
 					>
 						<X size={18} strokeWidth={2.5} />
-					</button>
+					</IconButton>
 				</div>
 
 				<div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-					<button
-						type="button"
+					<Button
 						onClick={onCancel}
 						disabled={isProcessing}
-						className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+						variant="secondary"
+						size="lg"
 					>
 						{cancelLabel}
-					</button>
+					</Button>
 
-					<button
-						type="button"
+					<Button
 						onClick={onConfirm}
 						disabled={isProcessing}
-						className={[
-							"inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-60",
-							isDanger
-								? "bg-red-600 shadow-sm shadow-red-600/20 hover:bg-red-700"
-								: "bg-slate-950 hover:bg-slate-800",
-						].join(" ")}
+						variant={isDanger ? "danger" : "primary"}
+						size="lg"
 					>
 						{isProcessing ? "Working..." : confirmLabel}
-					</button>
+					</Button>
 				</div>
 			</div>
 		</div>

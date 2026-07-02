@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../../auth/useAuth";
+import { Button } from "../../components/ui/Button";
+import { Spinner } from "../../components/ui/Surface";
 
 type LocationState = {
 	from?: {
@@ -42,8 +44,7 @@ export function LoginPage() {
 		return (
 			<main className="grid min-h-screen place-items-center bg-slate-50 p-5">
 				<div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm shadow-slate-200/40">
-					<div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
-					<p className="mt-4 font-bold text-slate-700">Loading...</p>
+					<Spinner label="Loading..." />
 				</div>
 			</main>
 		);
@@ -61,14 +62,15 @@ export function LoginPage() {
 				</div>
 			)}
 
-			<button
-				type="button"
+			<Button
 				onClick={handleGoogleLogin}
 				disabled={isSigningIn}
-				className="mt-6 flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 hover:disabled:bg-blue-600 cursor-pointer"
+				variant="primary"
+				size="lg"
+				className="mt-6 w-full"
 			>
 				{isSigningIn ? "Signing in..." : "Continue with Google"}
-			</button>
+			</Button>
 
 			<Link
 				to="/forgot-password"

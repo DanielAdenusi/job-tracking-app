@@ -24,14 +24,19 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 export function ToastProvider({ children }: { children: ReactNode }) {
 	const [toasts, setToasts] = useState<Toast[]>([]);
 
-	const showToast = useCallback((message: string, tone: ToastTone = "info") => {
-		const id = Date.now();
+	const showToast = useCallback(
+		(message: string, tone: ToastTone = "info") => {
+			const id = Date.now();
 
-		setToasts((current) => [...current, { id, message, tone }]);
-		window.setTimeout(() => {
-			setToasts((current) => current.filter((toast) => toast.id !== id));
-		}, 3200);
-	}, []);
+			setToasts((current) => [...current, { id, message, tone }]);
+			window.setTimeout(() => {
+				setToasts((current) =>
+					current.filter((toast) => toast.id !== id),
+				);
+			}, 3200);
+		},
+		[],
+	);
 
 	const value = useMemo(() => ({ showToast }), [showToast]);
 
@@ -41,20 +46,37 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 			<div
 				aria-live="polite"
 				aria-atomic="true"
-				className="fixed right-4 top-4 z-[80] grid w-[min(24rem,calc(100vw-2rem))] gap-3"
+				className="fixed right-4 top-4 z-80 grid w-[min(24rem,calc(100vw-2rem))] gap-3"
 			>
 				{toasts.map((toast) => (
 					<div
 						key={toast.id}
 						className={[
-							"rounded-xl border bg-white px-4 py-3 text-sm font-bold shadow-lg shadow-slate-950/10",
-							toast.tone === "success"
-								? "border-emerald-200 text-emerald-700"
-								: toast.tone === "error"
-									? "border-red-200 text-red-700"
-									: "border-slate-200 text-slate-700",
+							"toast-enter relative flex items-center gap-2 overflow-hidden rounded-r-lg border border-slate-200 bg-white px-6 py-4 text-sm font-bold text-slate-800 shadow-lg shadow-slate-50/10",
 						].join(" ")}
 					>
+						<span
+							className={[
+								"absolute left-0 top-0 h-full w-1 rounded-l-xl",
+								toast.tone === "success"
+									? "bg-emerald-500"
+									: toast.tone === "error"
+										? "bg-red-500"
+										: "bg-slate-500",
+							].join(" ")}
+						/>
+
+						<span
+							className={[
+								"rounded-full h-2 w-2 inline-block",
+								toast.tone === "success"
+									? "bg-emerald-500"
+									: toast.tone === "error"
+										? "bg-red-500"
+										: "bg-slate-500",
+							].join(" ")}
+						/>
+
 						{toast.message}
 					</div>
 				))}

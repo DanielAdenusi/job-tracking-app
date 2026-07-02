@@ -1,4 +1,5 @@
 import { signUpWithGoogle } from "../../services/authenticationApi";
+import { Button } from "../../components/ui/Button";
 
 type SignUpPageProps = {
 	error?: string;
@@ -27,9 +28,9 @@ export function SignUpPage({ error }: SignUpPageProps) {
 
 				{error && <p className="errorText">{error}</p>}
 
-				<button className="primaryButton" onClick={handleSignUp}>
+				<Button variant="primary" size="lg" onClick={handleSignUp}>
 					Continue with Google
-				</button>
+				</Button>
 			</section>
 		</main>
 	);

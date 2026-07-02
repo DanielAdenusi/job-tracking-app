@@ -6,7 +6,6 @@ import {
 	ExternalLink,
 	MapPin,
 	Pencil,
-	Search,
 	Trash2,
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router";
@@ -29,6 +28,10 @@ import {
 } from "../constants/applicationStatusStyles";
 import { applicationPriorityBadgeClasses } from "../constants/applicationPriorityStyles";
 import { ConfirmationModal } from "../components/ConfirmationModal";
+import { Button } from "../components/ui/Button";
+import { IconButton } from "../components/ui/IconButton";
+import { EmptyState, Spinner } from "../components/ui/Surface";
+import { SearchInput, Select } from "../components/ui/FormControls";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { loadLocalSettings, tableRowOptions } from "../lib/accountSettings";
 
@@ -491,35 +494,25 @@ export function ApplicationsPage() {
 						<span className="text-sm font-semibold text-slate-950">
 							Search
 						</span>
-						<span className="relative">
-							<Search
-								size={17}
-								strokeWidth={2.25}
-								className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-							/>
-							<input
-								type="search"
-								value={searchTerm}
-								onChange={(event) =>
-									setSearchTerm(event.target.value)
-								}
-								placeholder="Search company, role, location..."
-								className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 pl-10 text-sm font-medium outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-							/>
-						</span>
+						<SearchInput
+							value={searchTerm}
+							onChange={setSearchTerm}
+							onClear={() => setSearchTerm("")}
+							placeholder="Search company, role, location..."
+							className="font-medium"
+						/>
 					</label>
 					<label className="grid gap-2">
 						<span className="text-sm font-semibold text-slate-950">
 							Status
 						</span>
-						<select
+						<Select
 							value={statusFilter}
 							onChange={(event) =>
 								setStatusFilter(
 									event.target.value as StatusFilter,
 								)
 							}
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
 						>
 							<option value="all">All statuses</option>
 							{APPLICATION_STATUSES.map((status) => (
@@ -527,20 +520,19 @@ export function ApplicationsPage() {
 									{formatOption(status)}
 								</option>
 							))}
-						</select>
+						</Select>
 					</label>
 					<label className="grid gap-2">
 						<span className="text-sm font-semibold text-slate-950">
 							Priority
 						</span>
-						<select
+						<Select
 							value={priorityFilter}
 							onChange={(event) =>
 								setPriorityFilter(
 									event.target.value as PriorityFilter,
 								)
 							}
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
 						>
 							<option value="all">All priorities</option>
 							{APPLICATION_PRIORITIES.map((priority) => (
@@ -548,18 +540,17 @@ export function ApplicationsPage() {
 									{formatOption(priority)}
 								</option>
 							))}
-						</select>
+						</Select>
 					</label>
 					<label className="grid gap-2">
 						<span className="text-sm font-semibold text-slate-950">
 							Sort
 						</span>
-						<select
+						<Select
 							value={sortOption}
 							onChange={(event) =>
 								setSortOption(event.target.value as SortOption)
 							}
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
 						>
 							<option value="newest">Newest first</option>
 							<option value="oldest">Oldest first</option>
@@ -567,15 +558,11 @@ export function ApplicationsPage() {
 							<option value="company_za">Company Z-A</option>
 							<option value="follow_up">Follow-up date</option>
 							<option value="priority">Priority</option>
-						</select>
+						</Select>
 					</label>
-					<button
-						type="button"
-						onClick={resetFilters}
-						className="h-11 rounded-lg bg-slate-100 px-5 text-sm font-bold text-slate-700 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm hover:ring-1 hover:ring-slate-200"
-					>
+					<Button variant="ghost" size="lg" onClick={resetFilters}>
 						Reset
-					</button>
+					</Button>
 				</div>
 			</div>
 
@@ -587,15 +574,12 @@ export function ApplicationsPage() {
 
 			{isLoading && (
 				<div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm shadow-slate-200/40">
-					<div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
-					<p className="mt-4 font-bold text-slate-700">
-						Loading applications...
-					</p>
+					<Spinner label="Loading applications..." />
 				</div>
 			)}
 
 			{!isLoading && applications.length === 0 && (
-				<div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center">
+				<EmptyState>
 					<h3 className="text-lg font-extrabold">
 						No applications yet
 					</h3>
@@ -610,13 +594,13 @@ export function ApplicationsPage() {
 					>
 						Add application
 					</Link>
-				</div>
+				</EmptyState>
 			)}
 
 			{!isLoading &&
 				applications.length > 0 &&
 				filteredApplications.length === 0 && (
-					<div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center">
+					<EmptyState>
 						<h3 className="text-lg font-extrabold">
 							No matching applications
 						</h3>
@@ -625,14 +609,14 @@ export function ApplicationsPage() {
 							option.
 						</p>
 
-						<button
-							type="button"
+						<Button
 							onClick={resetFilters}
-							className="mt-5 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-100"
+							variant="secondary"
+							className="mt-5"
 						>
 							Clear filters
-						</button>
-					</div>
+						</Button>
+					</EmptyState>
 				)}
 
 			{!isLoading && filteredApplications.length > 0 && (
@@ -649,19 +633,19 @@ export function ApplicationsPage() {
 
 						<label className="flex items-center gap-2 text-sm font-bold text-slate-600">
 							Rows
-							<select
+							<Select
 								value={pageSize}
 								onChange={(event) =>
 									setPageSize(Number(event.target.value))
 								}
-								className="h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+								className="h-9"
 							>
 								{tableRowOptions.map((size) => (
 									<option key={size} value={size}>
 										{size}
 									</option>
 								))}
-							</select>
+							</Select>
 						</label>
 					</div>
 
@@ -757,8 +741,8 @@ export function ApplicationsPage() {
 										</div>
 									</div>
 
-									<div className="flex flex-wrap items-center gap-3 xl:justify-end">
-										<select
+									<div className="flex items-center gap-3 xl:justify-end">
+										<Select
 											value={application.status}
 											disabled={
 												isUpdatingId === application.id
@@ -787,7 +771,7 @@ export function ApplicationsPage() {
 													</option>
 												),
 											)}
-										</select>
+										</Select>
 										<Link
 											to={`/applications/${application.id}`}
 											className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm"
@@ -826,22 +810,21 @@ export function ApplicationsPage() {
 											/>
 										</Link>
 
-										<button
-											type="button"
+										<IconButton
 											disabled={
 												isDeletingId === application.id
 											}
 											onClick={() =>
 												setDeleteTarget(application)
 											}
-											aria-label={`Delete ${application.role}`}
-											className="grid h-10 w-10 place-items-center rounded-lg text-slate-400 transition hover:-translate-y-0.5 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+											label={`Delete ${application.role}`}
+											tone="danger"
 										>
 											<Trash2
 												size={17}
 												strokeWidth={2.25}
 											/>
-										</button>
+										</IconButton>
 									</div>
 								</div>
 							</article>
@@ -849,33 +832,31 @@ export function ApplicationsPage() {
 					})}
 
 					<div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/40 sm:flex-row sm:items-center sm:justify-between">
-						<button
-							type="button"
+						<Button
 							disabled={currentPage <= 1}
 							onClick={() =>
 								setCurrentPage((page) => Math.max(1, page - 1))
 							}
-							className="h-10 rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+							variant="secondary"
 						>
 							Previous
-						</button>
+						</Button>
 
 						<p className="text-center text-sm font-bold text-slate-500">
 							Page {currentPage} of {totalPages}
 						</p>
 
-						<button
-							type="button"
+						<Button
 							disabled={currentPage >= totalPages}
 							onClick={() =>
 								setCurrentPage((page) =>
 									Math.min(totalPages, page + 1),
 								)
 							}
-							className="h-10 rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+							variant="secondary"
 						>
 							Next
-						</button>
+						</Button>
 					</div>
 				</div>
 			)}

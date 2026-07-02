@@ -5,13 +5,14 @@ import {
 	CalendarDays,
 	GripVertical,
 	Plus,
-	Search,
 } from "lucide-react";
 
 import {
 	getApplications,
 	updateApplicationStatus,
 } from "../services/applicationsApi";
+import { EmptyState, Spinner } from "../components/ui/Surface";
+import { SearchInput, Select } from "../components/ui/FormControls";
 
 import {
 	APPLICATION_STATUSES,
@@ -243,10 +244,7 @@ export function KanbanPage() {
 	if (isLoading) {
 		return (
 			<section className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm shadow-slate-200/40">
-				<div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
-				<p className="mt-4 font-bold text-slate-700">
-					Loading Kanban board...
-				</p>
+				<Spinner label="Loading Kanban board..." />
 			</section>
 		);
 	}
@@ -260,7 +258,7 @@ export function KanbanPage() {
 			)}
 
 			{applications.length === 0 ? (
-				<div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center">
+				<EmptyState>
 					<h3 className="text-lg font-extrabold">
 						No applications yet
 					</h3>
@@ -275,25 +273,18 @@ export function KanbanPage() {
 					>
 						Add application
 					</Link>
-				</div>
+				</EmptyState>
 			) : (
 				<>
 					<div className="shrink-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/40">
 						<div className="grid gap-4 xl:grid-cols-[minmax(240px,1fr)_220px_200px_auto] xl:items-center">
-							<label className="relative">
-								<Search
-									size={17}
-									strokeWidth={2.25}
-									className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-								/>
-								<input
-									type="search"
+							<label>
+								<SearchInput
 									value={boardSearch}
-									onChange={(event) =>
-										setBoardSearch(event.target.value)
-									}
+									onChange={setBoardSearch}
+									onClear={() => setBoardSearch("")}
 									placeholder="Search applications..."
-									className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 pl-10 text-sm font-medium outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+									className="font-medium"
 								/>
 							</label>
 
@@ -301,12 +292,11 @@ export function KanbanPage() {
 								<span className="sr-only">
 									Filter by company
 								</span>
-								<select
+								<Select
 									value={companyFilter}
 									onChange={(event) =>
 										setCompanyFilter(event.target.value)
 									}
-									className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
 								>
 									<option value="all">
 										Filter by company
@@ -316,21 +306,20 @@ export function KanbanPage() {
 											{company}
 										</option>
 									))}
-								</select>
+								</Select>
 							</label>
 
 							<label>
 								<span className="sr-only">
 									Sort applications
 								</span>
-								<select
+								<Select
 									value={boardSort}
 									onChange={(event) =>
 										setBoardSort(
 											event.target.value as BoardSort,
 										)
 									}
-									className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
 								>
 									<option value="updated_desc">
 										Sort by updated date
@@ -339,7 +328,7 @@ export function KanbanPage() {
 										Oldest updated
 									</option>
 									<option value="role_az">Role A-Z</option>
-								</select>
+								</Select>
 							</label>
 
 							<Link

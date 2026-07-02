@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
 	APPLICATION_PRIORITIES,
 	APPLICATION_STATUSES,
@@ -9,6 +9,9 @@ import {
 	type EmploymentType,
 	type WorkMode,
 } from "../constants/applicationOptions";
+import { Button } from "./ui/Button";
+import { Card } from "./ui/Surface";
+import { Field, Select, Textarea, TextInput } from "./ui/FormControls";
 import type { CreateApplicationInput } from "../types/application";
 
 export type ApplicationFormValues = {
@@ -58,9 +61,7 @@ function dateTimeLocalInputValue(value?: string | null) {
 
 	const date = new Date(value);
 
-	if (Number.isNaN(date.getTime())) {
-		return "";
-	}
+	if (Number.isNaN(date.getTime())) return "";
 
 	const offset = date.getTimezoneOffset();
 	const localDate = new Date(date.getTime() - offset * 60 * 1000);
@@ -70,6 +71,67 @@ function dateTimeLocalInputValue(value?: string | null) {
 
 function emptyToUndefined(value: string) {
 	return value.trim() === "" ? undefined : value.trim();
+}
+
+function FormSection({
+	children,
+	description,
+	title,
+}: {
+	children: ReactNode;
+	description: string;
+	title: string;
+}) {
+	return (
+		<Card className="p-6">
+			<div>
+				<h3 className="text-lg font-extrabold">{title}</h3>
+				<p className="mt-1 text-sm text-slate-500">{description}</p>
+			</div>
+			<div className="mt-6 grid gap-5 md:grid-cols-2">{children}</div>
+		</Card>
+	);
+}
+
+type TextFieldProps = {
+	field: keyof ApplicationFormValues;
+	label: string;
+	value: string;
+	error?: string;
+	placeholder?: string;
+	required?: boolean;
+	type?: string;
+	className?: string;
+	onChange: (value: string) => void;
+};
+
+function TextField({
+	className,
+	error,
+	field,
+	label,
+	onChange,
+	placeholder,
+	required,
+	type,
+	value,
+}: TextFieldProps) {
+	return (
+		<Field
+			className={className}
+			error={error}
+			label={label}
+			required={required}
+		>
+			<TextInput
+				name={field}
+				type={type}
+				value={value}
+				placeholder={placeholder}
+				onChange={(event) => onChange(event.target.value)}
+			/>
+		</Field>
+	);
 }
 
 const defaultValues: ApplicationFormValues = {
@@ -95,10 +157,10 @@ const defaultValues: ApplicationFormValues = {
 };
 
 export function ApplicationForm({
-	mode,
+	error,
 	initialValues,
 	isSubmitting = false,
-	error,
+	mode,
 	onSubmit,
 }: ApplicationFormProps) {
 	const startingValues = useMemo(
@@ -135,13 +197,8 @@ export function ApplicationForm({
 	function validateForm() {
 		const errors: Record<string, string> = {};
 
-		if (!values.company.trim()) {
-			errors.company = "Company is required";
-		}
-
-		if (!values.role.trim()) {
-			errors.role = "Role is required";
-		}
+		if (!values.company.trim()) errors.company = "Company is required";
+		if (!values.role.trim()) errors.role = "Role is required";
 
 		if (values.jobUrl.trim() && !values.jobUrl.startsWith("http")) {
 			errors.jobUrl = "Job URL must start with http:// or https://";
@@ -159,12 +216,10 @@ export function ApplicationForm({
 		return Object.keys(errors).length === 0;
 	}
 
-	async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
+	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 
-		if (!validateForm()) {
-			return;
-		}
+		if (!validateForm()) return;
 
 		await onSubmit({
 			company: values.company.trim(),
@@ -189,6 +244,14 @@ export function ApplicationForm({
 		});
 	}
 
+	const submitLabel = isSubmitting
+		? mode === "create"
+			? "Creating..."
+			: "Saving..."
+		: mode === "create"
+			? "Create application"
+			: "Save changes";
+
 	return (
 		<form onSubmit={handleSubmit} className="grid gap-6">
 			{error && (
@@ -197,392 +260,225 @@ export function ApplicationForm({
 				</div>
 			)}
 
-			<section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/40">
-				<div>
-					<h3 className="text-lg font-extrabold">Role details</h3>
-					<p className="mt-1 text-sm text-slate-500">
-						Add the core information about the job you are tracking.
-					</p>
-				</div>
+			<FormSection
+				title="Role details"
+				description="Add the core information about the job you are tracking."
+			>
+				<TextField
+					field="company"
+					label="Company"
+					value={values.company}
+					required
+					error={fieldErrors.company}
+					placeholder="e.g. Spotify"
+					onChange={(value) => updateField("company", value)}
+				/>
+				<TextField
+					field="role"
+					label="Role"
+					value={values.role}
+					required
+					error={fieldErrors.role}
+					placeholder="e.g. Frontend Developer"
+					onChange={(value) => updateField("role", value)}
+				/>
+				<TextField
+					field="location"
+					label="Location"
+					value={values.location}
+					placeholder="e.g. London"
+					onChange={(value) => updateField("location", value)}
+				/>
+				<TextField
+					field="salary"
+					label="Salary"
+					value={values.salary}
+					placeholder="e.g. GBP 30,000 - GBP 40,000"
+					onChange={(value) => updateField("salary", value)}
+				/>
+				<TextField
+					className="md:col-span-2"
+					field="jobUrl"
+					label="Job URL"
+					value={values.jobUrl}
+					error={fieldErrors.jobUrl}
+					placeholder="https://example.com/job"
+					onChange={(value) => updateField("jobUrl", value)}
+				/>
+			</FormSection>
 
-				<div className="mt-6 grid gap-5 md:grid-cols-2">
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Company <span className="text-red-600">*</span>
-						</span>
-						<input
-							value={values.company}
-							onChange={(event) =>
-								updateField("company", event.target.value)
-							}
-							placeholder="e.g. Spotify"
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-						{fieldErrors.company && (
-							<span className="text-sm font-semibold text-red-600">
-								{fieldErrors.company}
-							</span>
-						)}
-					</label>
+			<FormSection
+				title="Tracking details"
+				description="Set the current stage, priority, work mode, and source."
+			>
+				<Field label="Status">
+					<Select
+						value={values.status}
+						onChange={(event) =>
+							updateField(
+								"status",
+								event.target.value as ApplicationStatus,
+							)
+						}
+					>
+						{APPLICATION_STATUSES.map((status) => (
+							<option key={status} value={status}>
+								{formatOption(status)}
+							</option>
+						))}
+					</Select>
+				</Field>
+				<Field label="Priority">
+					<Select
+						value={values.priority}
+						onChange={(event) =>
+							updateField(
+								"priority",
+								event.target.value as ApplicationPriority,
+							)
+						}
+					>
+						{APPLICATION_PRIORITIES.map((priority) => (
+							<option key={priority} value={priority}>
+								{formatOption(priority)}
+							</option>
+						))}
+					</Select>
+				</Field>
+				<Field label="Employment type">
+					<Select
+						value={values.employmentType}
+						onChange={(event) =>
+							updateField(
+								"employmentType",
+								event.target.value as EmploymentType | "",
+							)
+						}
+					>
+						<option value="">Not set</option>
+						{EMPLOYMENT_TYPES.map((type) => (
+							<option key={type} value={type}>
+								{formatOption(type)}
+							</option>
+						))}
+					</Select>
+				</Field>
+				<Field label="Work mode">
+					<Select
+						value={values.workMode}
+						onChange={(event) =>
+							updateField(
+								"workMode",
+								event.target.value as WorkMode | "",
+							)
+						}
+					>
+						<option value="">Not set</option>
+						{WORK_MODES.map((mode) => (
+							<option key={mode} value={mode}>
+								{formatOption(mode)}
+							</option>
+						))}
+					</Select>
+				</Field>
+				<TextField
+					className="md:col-span-2"
+					field="source"
+					label="Source"
+					value={values.source}
+					placeholder="e.g. LinkedIn, Indeed, company website, referral"
+					onChange={(value) => updateField("source", value)}
+				/>
+			</FormSection>
 
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Role <span className="text-red-600">*</span>
-						</span>
-						<input
-							value={values.role}
-							onChange={(event) =>
-								updateField("role", event.target.value)
-							}
-							placeholder="e.g. Frontend Developer"
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-						{fieldErrors.role && (
-							<span className="text-sm font-semibold text-red-600">
-								{fieldErrors.role}
-							</span>
-						)}
-					</label>
+			<FormSection
+				title="Dates"
+				description="Add deadlines, follow-ups, interviews, and outcome dates."
+			>
+				<TextField
+					field="appliedAt"
+					label="Applied date"
+					type="date"
+					value={values.appliedAt}
+					onChange={(value) => updateField("appliedAt", value)}
+				/>
+				<TextField
+					field="followUpAt"
+					label="Follow-up date"
+					type="date"
+					value={values.followUpAt}
+					onChange={(value) => updateField("followUpAt", value)}
+				/>
+				<TextField
+					field="deadlineAt"
+					label="Application deadline"
+					type="date"
+					value={values.deadlineAt}
+					onChange={(value) => updateField("deadlineAt", value)}
+				/>
+				<TextField
+					field="interviewAt"
+					label="Interview date/time"
+					type="datetime-local"
+					value={values.interviewAt}
+					onChange={(value) => updateField("interviewAt", value)}
+				/>
+				<TextField
+					field="rejectedAt"
+					label="Rejected date"
+					type="date"
+					value={values.rejectedAt}
+					onChange={(value) => updateField("rejectedAt", value)}
+				/>
+				<TextField
+					field="offerDeadlineAt"
+					label="Offer deadline"
+					type="date"
+					value={values.offerDeadlineAt}
+					onChange={(value) => updateField("offerDeadlineAt", value)}
+				/>
+			</FormSection>
 
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Location
-						</span>
-						<input
-							value={values.location}
-							onChange={(event) =>
-								updateField("location", event.target.value)
-							}
-							placeholder="e.g. London"
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-					</label>
-
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Salary
-						</span>
-						<input
-							value={values.salary}
-							onChange={(event) =>
-								updateField("salary", event.target.value)
-							}
-							placeholder="e.g. GBP 30,000 - GBP 40,000"
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-					</label>
-
-					<label className="grid gap-2 md:col-span-2">
-						<span className="text-sm font-bold text-slate-700">
-							Job URL
-						</span>
-						<input
-							value={values.jobUrl}
-							onChange={(event) =>
-								updateField("jobUrl", event.target.value)
-							}
-							placeholder="https://example.com/job"
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-						{fieldErrors.jobUrl && (
-							<span className="text-sm font-semibold text-red-600">
-								{fieldErrors.jobUrl}
-							</span>
-						)}
-					</label>
-				</div>
-			</section>
-
-			<section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/40">
-				<div>
-					<h3 className="text-lg font-extrabold">Tracking details</h3>
-					<p className="mt-1 text-sm text-slate-500">
-						Set the current stage, priority, work mode, and source.
-					</p>
-				</div>
-
-				<div className="mt-6 grid gap-5 md:grid-cols-2">
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Status
-						</span>
-						<select
-							value={values.status}
-							onChange={(event) =>
-								updateField(
-									"status",
-									event.target.value as ApplicationStatus,
-								)
-							}
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						>
-							{APPLICATION_STATUSES.map((status) => (
-								<option key={status} value={status}>
-									{formatOption(status)}
-								</option>
-							))}
-						</select>
-					</label>
-
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Priority
-						</span>
-						<select
-							value={values.priority}
-							onChange={(event) =>
-								updateField(
-									"priority",
-									event.target.value as ApplicationPriority,
-								)
-							}
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						>
-							{APPLICATION_PRIORITIES.map((priority) => (
-								<option key={priority} value={priority}>
-									{formatOption(priority)}
-								</option>
-							))}
-						</select>
-					</label>
-
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Employment type
-						</span>
-						<select
-							value={values.employmentType}
-							onChange={(event) =>
-								updateField(
-									"employmentType",
-									event.target.value as EmploymentType | "",
-								)
-							}
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						>
-							<option value="">Not set</option>
-							{EMPLOYMENT_TYPES.map((type) => (
-								<option key={type} value={type}>
-									{formatOption(type)}
-								</option>
-							))}
-						</select>
-					</label>
-
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Work mode
-						</span>
-						<select
-							value={values.workMode}
-							onChange={(event) =>
-								updateField(
-									"workMode",
-									event.target.value as WorkMode | "",
-								)
-							}
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						>
-							<option value="">Not set</option>
-							{WORK_MODES.map((mode) => (
-								<option key={mode} value={mode}>
-									{formatOption(mode)}
-								</option>
-							))}
-						</select>
-					</label>
-
-					<label className="grid gap-2 md:col-span-2">
-						<span className="text-sm font-bold text-slate-700">
-							Source
-						</span>
-						<input
-							value={values.source}
-							onChange={(event) =>
-								updateField("source", event.target.value)
-							}
-							placeholder="e.g. LinkedIn, Indeed, company website, referral"
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-					</label>
-				</div>
-			</section>
-
-			<section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/40">
-				<div>
-					<h3 className="text-lg font-extrabold">Dates</h3>
-					<p className="mt-1 text-sm text-slate-500">
-						Add deadlines, follow-ups, interviews, and outcome
-						dates.
-					</p>
-				</div>
-
-				<div className="mt-6 grid gap-5 md:grid-cols-2">
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Applied date
-						</span>
-						<input
-							type="date"
-							value={values.appliedAt}
-							onChange={(event) =>
-								updateField("appliedAt", event.target.value)
-							}
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-					</label>
-
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Follow-up date
-						</span>
-						<input
-							type="date"
-							value={values.followUpAt}
-							onChange={(event) =>
-								updateField("followUpAt", event.target.value)
-							}
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-					</label>
-
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Application deadline
-						</span>
-						<input
-							type="date"
-							value={values.deadlineAt}
-							onChange={(event) =>
-								updateField("deadlineAt", event.target.value)
-							}
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-					</label>
-
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Interview date/time
-						</span>
-						<input
-							type="datetime-local"
-							value={values.interviewAt}
-							onChange={(event) =>
-								updateField("interviewAt", event.target.value)
-							}
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-					</label>
-
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Rejected date
-						</span>
-						<input
-							type="date"
-							value={values.rejectedAt}
-							onChange={(event) =>
-								updateField("rejectedAt", event.target.value)
-							}
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-					</label>
-
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Offer deadline
-						</span>
-						<input
-							type="date"
-							value={values.offerDeadlineAt}
-							onChange={(event) =>
-								updateField(
-									"offerDeadlineAt",
-									event.target.value,
-								)
-							}
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-					</label>
-				</div>
-			</section>
-
-			<section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/40">
-				<div>
-					<h3 className="text-lg font-extrabold">
-						Contact and notes
-					</h3>
-					<p className="mt-1 text-sm text-slate-500">
-						Store recruiter contact details and anything useful for
-						follow-up.
-					</p>
-				</div>
-
-				<div className="mt-6 grid gap-5 md:grid-cols-2">
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Contact name
-						</span>
-						<input
-							value={values.contactName}
-							onChange={(event) =>
-								updateField("contactName", event.target.value)
-							}
-							placeholder="e.g. Jane Smith"
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-					</label>
-
-					<label className="grid gap-2">
-						<span className="text-sm font-bold text-slate-700">
-							Contact email
-						</span>
-						<input
-							value={values.contactEmail}
-							onChange={(event) =>
-								updateField("contactEmail", event.target.value)
-							}
-							placeholder="jane@example.com"
-							className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-						{fieldErrors.contactEmail && (
-							<span className="text-sm font-semibold text-red-600">
-								{fieldErrors.contactEmail}
-							</span>
-						)}
-					</label>
-
-					<label className="grid gap-2 md:col-span-2">
-						<span className="text-sm font-bold text-slate-700">
-							Notes
-						</span>
-						<textarea
-							value={values.notes}
-							onChange={(event) =>
-								updateField("notes", event.target.value)
-							}
-							placeholder="Interview notes, application details, recruiter messages, next steps..."
-							rows={6}
-							className="resize-y rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold leading-7 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-						/>
-					</label>
-				</div>
-			</section>
+			<FormSection
+				title="Contact and notes"
+				description="Store recruiter contact details and anything useful for follow-up."
+			>
+				<TextField
+					field="contactName"
+					label="Contact name"
+					value={values.contactName}
+					placeholder="e.g. Jane Smith"
+					onChange={(value) => updateField("contactName", value)}
+				/>
+				<TextField
+					field="contactEmail"
+					label="Contact email"
+					value={values.contactEmail}
+					error={fieldErrors.contactEmail}
+					placeholder="jane@example.com"
+					onChange={(value) => updateField("contactEmail", value)}
+				/>
+				<Field className="md:col-span-2" label="Notes">
+					<Textarea
+						value={values.notes}
+						onChange={(event) =>
+							updateField("notes", event.target.value)
+						}
+						placeholder="Interview notes, application details, recruiter messages, next steps..."
+						rows={6}
+					/>
+				</Field>
+			</FormSection>
 
 			<div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
-				<button
+				<Button
 					type="submit"
+					variant="primary"
+					size="lg"
 					disabled={isSubmitting}
-					className="inline-flex h-11 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-bold text-white shadow-sm shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
 				>
-					{isSubmitting
-						? mode === "create"
-							? "Creating..."
-							: "Saving..."
-						: mode === "create"
-							? "Create application"
-							: "Save changes"}
-				</button>
+					{submitLabel}
+				</Button>
 			</div>
 		</form>
 	);
