@@ -71,7 +71,11 @@ export function LoginPage() {
 		try {
 			setError(null);
 			setIsSigningInWithGoogle(true);
-			await loginWithGoogle();
+			const firebaseUser = await loginWithGoogle();
+
+			if (firebaseUser) {
+				navigate(redirectTo, { replace: true });
+			}
 		} catch (err) {
 			setError(getAuthErrorMessage(err, "Failed to sign in."));
 			showToast(getAuthErrorMessage(err, "Failed to sign in."), "error");

@@ -101,7 +101,11 @@ export function SignUpPage() {
 		try {
 			setError(null);
 			setIsSigningInWithGoogle(true);
-			await loginWithGoogle();
+			const firebaseUser = await loginWithGoogle();
+
+			if (firebaseUser) {
+				navigate(redirectTo, { replace: true });
+			}
 		} catch (err) {
 			const message = getAuthErrorMessage(
 				err,

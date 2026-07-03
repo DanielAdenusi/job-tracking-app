@@ -21,7 +21,7 @@ type AuthContextValue = {
 	user: User | null;
 	isAuthLoading: boolean;
 	loginWithEmail: (email: string, password: string) => Promise<void>;
-	loginWithGoogle: () => Promise<void>;
+	loginWithGoogle: () => Promise<User | null>;
 	signUpWithEmail: (email: string, password: string) => Promise<void>;
 	sendPasswordReset: (email: string) => Promise<void>;
 	logout: () => Promise<void>;
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	);
 
 	const handleLoginWithGoogle = useCallback(async () => {
-		await loginWithGoogle();
+		return loginWithGoogle();
 	}, []);
 
 	const handleSignUpWithEmail = useCallback(
