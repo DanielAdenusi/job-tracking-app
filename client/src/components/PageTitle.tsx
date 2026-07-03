@@ -3,6 +3,8 @@ import { matchPath, useLocation } from "react-router-dom";
 import { APP_NAME } from "../constants/pageTitle";
 
 const pageTitles = [
+	{ path: "/login", title: "Log in" },
+	{ path: "/signup", title: "Sign up" },
 	{ path: "/dashboard", title: "Dashboard" },
 	{ path: "/applications", title: "Applications" },
 	{ path: "/applications/new", title: "Add Application" },
@@ -10,6 +12,7 @@ const pageTitles = [
 	{ path: "/kanban", title: "Kanban" },
 	{ path: "/account", title: "Account" },
 	{ path: "/account/*", title: "Account" },
+	{ path: "/help", title: "Help" },
 ];
 
 export function PageTitle() {

@@ -104,8 +104,7 @@ export function ConfirmationModal({
 			}
 
 			const firstElement = focusableElements[0];
-			const lastElement =
-				focusableElements[focusableElements.length - 1];
+			const lastElement = focusableElements[focusableElements.length - 1];
 			const activeElement = document.activeElement;
 
 			if (event.shiftKey) {
@@ -150,7 +149,7 @@ export function ConfirmationModal({
 	const isDanger = tone === "danger";
 
 	return (
-		<div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/55 px-4 py-6 backdrop-blur-sm">
+		<div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/15 px-4 py-6 backdrop-blur-sm">
 			<div
 				ref={dialogRef}
 				role="dialog"
@@ -198,7 +197,6 @@ export function ConfirmationModal({
 						onClick={onCancel}
 						disabled={isProcessing}
 						variant="secondary"
-						size="lg"
 					>
 						{cancelLabel}
 					</Button>
@@ -207,7 +205,7 @@ export function ConfirmationModal({
 						onClick={onConfirm}
 						disabled={isProcessing}
 						variant={isDanger ? "danger" : "primary"}
-						size="lg"
+						className="cursor-pointer"
 					>
 						{isProcessing ? "Working..." : confirmLabel}
 					</Button>

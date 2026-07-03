@@ -29,7 +29,7 @@ import {
 import { applicationPriorityBadgeClasses } from "../constants/applicationPriorityStyles";
 import { ConfirmationModal } from "../components/ConfirmationModal";
 import { Button } from "../components/ui/Button";
-import { IconButton } from "../components/ui/IconButton";
+import { IconButton, IconButtonLink } from "../components/ui/IconButton";
 import { EmptyState, Spinner } from "../components/ui/Surface";
 import { SearchInput, Select } from "../components/ui/FormControls";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
@@ -560,7 +560,7 @@ export function ApplicationsPage() {
 							<option value="priority">Priority</option>
 						</Select>
 					</label>
-					<Button variant="ghost" size="lg" onClick={resetFilters}>
+					<Button variant="ghost" onClick={resetFilters}>
 						Reset
 					</Button>
 				</div>
@@ -638,7 +638,6 @@ export function ApplicationsPage() {
 								onChange={(event) =>
 									setPageSize(Number(event.target.value))
 								}
-								className="h-9"
 							>
 								{tableRowOptions.map((size) => (
 									<option key={size} value={size}>
@@ -741,7 +740,7 @@ export function ApplicationsPage() {
 										</div>
 									</div>
 
-									<div className="flex items-center gap-3 xl:justify-end">
+									<div className="flex min-w-0 items-center gap-3 xl:justify-end">
 										<Select
 											value={application.status}
 											disabled={
@@ -774,7 +773,7 @@ export function ApplicationsPage() {
 										</Select>
 										<Link
 											to={`/applications/${application.id}`}
-											className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm"
+											className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm"
 										>
 											Details
 										</Link>
@@ -785,30 +784,31 @@ export function ApplicationsPage() {
 										/>
 
 										{application.jobUrl && (
-											<a
-												href={application.jobUrl}
+											<IconButtonLink
+												to={application.jobUrl}
+												tone="link"
 												target="_blank"
 												rel="noreferrer"
 												aria-label={`Open job post for ${application.role}`}
-												className="grid h-10 w-10 place-items-center rounded-lg text-slate-400 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:text-blue-600"
+												label={`Open job post for ${application.role}`}
 											>
 												<ExternalLink
 													size={17}
 													strokeWidth={2.25}
 												/>
-											</a>
+											</IconButtonLink>
 										)}
 
-										<Link
+										<IconButtonLink
 											to={`/applications/${application.id}/edit`}
 											aria-label={`Edit ${application.role}`}
-											className="grid h-10 w-10 place-items-center rounded-lg text-slate-400 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:text-blue-600"
+											label={`Edit ${application.role}`}
 										>
 											<Pencil
 												size={17}
 												strokeWidth={2.25}
 											/>
-										</Link>
+										</IconButtonLink>
 
 										<IconButton
 											disabled={

@@ -1,8 +1,16 @@
-import { useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../../auth/useAuth";
-import { Button } from "../../components/ui/Button";
-import { Spinner } from "../../components/ui/Surface";
+import {
+	AuthDivider,
+	AuthField,
+	GoogleIcon,
+	authButtonClassName,
+	getAuthErrorMessage,
+	googleButtonClassName,
+} from "./sharedAuthUi";
+import { useToast } from "../../components/ToastProvider";
 
 type LocationState = {
 	from?: {
@@ -11,9 +19,14 @@ type LocationState = {
 };
 
 export function LoginPage() {
-	const { user, isAuthLoading, loginWithGoogle } = useAuth();
+	const { user, isAuthLoading, loginWithEmail, loginWithGoogle } = useAuth();
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [isSigningIn, setIsSigningIn] = useState(false);
+	const { showToast } = useToast();
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isSigningInWithGoogle, setIsSigningInWithGoogle] = useState(false);
 
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -27,26 +40,52 @@ export function LoginPage() {
 		}
 	}, [user, navigate, redirectTo]);
 
+	async function handleEmailLogin(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+
+		try {
+			setError(null);
+			setIsSubmitting(true);
+			await loginWithEmail(email, password);
+			navigate(redirectTo, { replace: true });
+		} catch (err) {
+			setError(
+				getAuthErrorMessage(
+					err,
+					"Failed to sign in with those details.",
+				),
+			);
+			showToast(
+				getAuthErrorMessage(
+					err,
+					"Failed to sign in with those details.",
+				),
+				"error",
+			);
+		} finally {
+			setIsSubmitting(false);
+		}
+	}
+
 	async function handleGoogleLogin() {
 		try {
 			setError(null);
-			setIsSigningIn(true);
+			setIsSigningInWithGoogle(true);
 			await loginWithGoogle();
 			navigate(redirectTo, { replace: true });
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to sign in");
+			setError(getAuthErrorMessage(err, "Failed to sign in."));
+			showToast(getAuthErrorMessage(err, "Failed to sign in."), "error");
 		} finally {
-			setIsSigningIn(false);
+			setIsSigningInWithGoogle(false);
 		}
 	}
 
 	if (isAuthLoading) {
 		return (
-			<main className="grid min-h-screen place-items-center bg-slate-50 p-5">
-				<div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm shadow-slate-200/40">
-					<Spinner label="Loading..." />
-				</div>
-			</main>
+			<div className="auth-loading mt-8 rounded-xl border p-5 text-center text-sm font-semibold">
+				Loading...
+			</div>
 		);
 	}
 
@@ -54,34 +93,96 @@ export function LoginPage() {
 		return <Navigate to={redirectTo} replace />;
 	}
 
+	const isBusy = isSubmitting || isSigningInWithGoogle;
+
 	return (
 		<>
-			{error && (
-				<div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
-					{error}
+			<form className="mt-8" onSubmit={handleEmailLogin}>
+				<AuthField
+					id="email"
+					label="Email"
+					type="email"
+					value={email}
+					onChange={(event) => setEmail(event.target.value)}
+					placeholder="you@example.com"
+					autoComplete="email"
+					icon={<Mail size={16} strokeWidth={1.9} />}
+					required
+				/>
+
+				<AuthField
+					id="password"
+					label="Password"
+					type={showPassword ? "text" : "password"}
+					value={password}
+					onChange={(event) => setPassword(event.target.value)}
+					placeholder="Enter your password"
+					autoComplete="current-password"
+					icon={<Lock size={16} strokeWidth={1.9} />}
+					required
+					action={
+						<button
+							type="button"
+							onClick={() => setShowPassword((value) => !value)}
+							className="auth-field-action absolute right-2.5 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md transition"
+							aria-label={
+								showPassword ? "Hide password" : "Show password"
+							}
+						>
+							{showPassword ? (
+								<EyeOff size={16} strokeWidth={1.9} />
+							) : (
+								<Eye size={16} strokeWidth={1.9} />
+							)}
+						</button>
+					}
+				/>
+
+				<div className="mt-1 flex items-center justify-between gap-4">
+					<label className="auth-field-label inline-flex items-center gap-2 text-sm font-medium">
+						<input
+							type="checkbox"
+							defaultChecked
+							className="auth-checkbox h-4 w-4 rounded"
+						/>
+						Remember me
+					</label>
+					<Link
+						to="/forgot-password"
+						className="auth-inline-link text-sm font-bold underline decoration-transparent underline-offset-4 transition hover:decoration-current"
+					>
+						Forgot password?
+					</Link>
 				</div>
-			)}
 
-			<Button
+				{error && (
+					<div className="auth-alert-error mt-5 rounded-xl border p-3 text-sm font-semibold">
+						{error}
+					</div>
+				)}
+
+				<button
+					type="submit"
+					disabled={isBusy}
+					className={`${authButtonClassName} mt-6`}
+				>
+					{isSubmitting ? "Logging in..." : "Log in"}
+				</button>
+			</form>
+
+			<AuthDivider />
+
+			<button
+				type="button"
+				disabled={isBusy}
 				onClick={handleGoogleLogin}
-				disabled={isSigningIn}
-				variant="primary"
-				size="lg"
-				className="mt-6 w-full"
+				className={googleButtonClassName}
 			>
-				{isSigningIn ? "Signing in..." : "Continue with Google"}
-			</Button>
-
-			<Link
-				to="/forgot-password"
-				className="mt-6 text-start text-sm text-slate-500 hover:text-slate-700 transition underline hover:decoration-slate-700"
-			>
-				Forgot your password?
-			</Link>
-
-			<p className="mt-6 text-start text-sm text-slate-500">
-				Built as a mobile-first job tracking dashboard.
-			</p>
+				<GoogleIcon />
+				{isSigningInWithGoogle
+					? "Opening Google..."
+					: "Continue with Google"}
+			</button>
 		</>
 	);
 }

@@ -6,6 +6,8 @@ type SurfaceProps = {
 	className?: string;
 };
 
+type SpinnerSize = "sm" | "md" | "lg";
+
 export function Card({ children, className }: SurfaceProps) {
 	return (
 		<section
@@ -32,10 +34,29 @@ export function EmptyState({ children, className }: SurfaceProps) {
 	);
 }
 
-export function Spinner({ label, className }: { label?: string; className?: string }) {
+export function Spinner({
+	label,
+	className,
+	size,
+}: {
+	label?: string;
+	className?: string;
+	size?: SpinnerSize;
+}) {
+	const sizeClasses = {
+		sm: "h-4 w-4 border-2",
+		md: "h-8 w-8 border-4",
+		lg: "h-16 w-16 border-4",
+	};
+
 	return (
 		<div className={cn("text-center", className)}>
-			<div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
+			<div
+				className={cn(
+					"mx-auto animate-spin rounded-full",
+					sizeClasses[size ?? "md"],
+				)}
+			/>
 			{label && <p className="mt-4 font-bold text-slate-700">{label}</p>}
 		</div>
 	);

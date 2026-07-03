@@ -35,7 +35,7 @@ export function PageHeading({
 		<div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/40 md:p-6">
 			<div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 				<div className="max-w-2xl">
-					<p className="text-xs font-black uppercase tracking-[0.16em] text-blue-600">
+					<p className="app-accent-text text-xs font-black uppercase tracking-[0.16em]">
 						{eyebrow}
 					</p>
 					<h2 className="mt-2 text-2xl font-black text-slate-950 md:text-3xl">

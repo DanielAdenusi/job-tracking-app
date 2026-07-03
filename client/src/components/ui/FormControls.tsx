@@ -6,7 +6,7 @@ import {
 	type SelectHTMLAttributes,
 	type TextareaHTMLAttributes,
 } from "react";
-import { Check, ChevronsUpDown, Search, X } from "lucide-react";
+import { ChevronsUpDown, Search, X } from "lucide-react";
 import { cn } from "./classes";
 
 type FieldProps = LabelHTMLAttributes<HTMLLabelElement> & {
@@ -50,7 +50,7 @@ export function Field({
 }
 
 const controlClasses =
-	"h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60";
+	"h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[var(--app-accent)] focus:bg-white focus:ring-4 focus:ring-[var(--app-accent-ring)] disabled:cursor-not-allowed disabled:opacity-60";
 
 export const TextInput = forwardRef<
 	HTMLInputElement,
@@ -137,7 +137,8 @@ export const Textarea = forwardRef<
 	<textarea
 		ref={ref}
 		className={cn(
-			"min-h-32 resize-y rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold leading-7 text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60",
+			"min-h-32 resize-y rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold leading-7 text-slate-600 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60",
+			"focus:border-(--app-accent) focus:ring-(--app-accent-ring)",
 			className,
 		)}
 		{...props}
@@ -170,7 +171,7 @@ export function Checkbox({
 				type="checkbox"
 				checked={checked}
 				onChange={(event) => onChange(event.target.checked)}
-				className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+				className="accent-checkbox h-4 w-4 rounded border-slate-300 focus:ring-(--app-accent)"
 			/>
 			{label}
 		</label>
@@ -191,19 +192,21 @@ export function Toggle({ checked, label, onChange }: ToggleProps) {
 			aria-checked={checked}
 			onClick={() => onChange(!checked)}
 			className={cn(
-				"inline-flex h-6 w-12 shrink-0 items-center rounded-full p-1 transition",
-				checked ? "bg-blue-600" : "bg-slate-300",
+				"group inline-flex h-6 w-12 shrink-0 items-center rounded-full p-1 transition disabled:cursor-not-allowed disabled:opacity-60 shadow-sm",
+				checked
+					? "toggle-control-checked app-accent-bg"
+					: "toggle-control-unchecked bg-slate-300 hover:bg-slate-400",
 			)}
 		>
 			<span className="sr-only">{label}</span>
 			<span
 				className={cn(
-					"grid h-4 w-4 place-items-center rounded-full bg-white text-blue-600 shadow-sm transition",
-					checked ? "translate-x-6" : "translate-x-0",
+					"grid h-4 w-4 place-items-center rounded-full shadow-sm transition bg-slate-50",
+					checked
+						? "translate-x-6 group-hover:translate-x-5.5"
+						: "translate-x-0 group-hover:translate-x-0.5",
 				)}
-			>
-				{checked && <Check size={13} strokeWidth={3} />}
-			</span>
+			/>
 		</button>
 	);
 }
@@ -236,7 +239,7 @@ export function SegmentedControl<T extends string>({
 					className={cn(
 						"h-9 flex-1 rounded-md px-3 text-sm font-bold transition md:flex-none",
 						value === option.value
-							? "bg-white text-blue-700 shadow-sm"
+							? "app-accent-surface app-accent-text shadow-sm"
 							: "text-slate-500 hover:text-slate-950",
 					)}
 				>

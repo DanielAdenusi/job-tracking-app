@@ -13,7 +13,7 @@ export type SettingsTab =
 
 export type Theme = "system" | "light" | "dark";
 export type AccentColour =
-	| "teal"
+	| "brand"
 	| "blue"
 	| "purple"
 	| "green"
@@ -58,11 +58,11 @@ export const tableRowOptions = [10, 25, 50, 100] as const;
 
 export const defaultSettings: UserSettings = {
 	theme: "system",
-	accentColour: "blue",
+	accentColour: "brand",
 	fontSize: "default",
 	reducedMotion: false,
 	highContrast: false,
-	alwaysShowFocus: true,
+	alwaysShowFocus: false,
 	largerClickTargets: false,
 	defaultTableRows: 10,
 	tableDensity: "comfortable",
@@ -93,10 +93,22 @@ export function normalizeSettings(
 		)
 			? settings.defaultTableRows
 			: defaultSettings.defaultTableRows;
+	const storedAccent = settings?.accentColour as string | undefined;
+	const accentColour: AccentColour =
+		storedAccent === "palette" || storedAccent === "teal"
+			? "brand"
+			: storedAccent === "blue" ||
+				  storedAccent === "purple" ||
+				  storedAccent === "green" ||
+				  storedAccent === "orange" ||
+				  storedAccent === "pink"
+				? storedAccent
+				: defaultSettings.accentColour;
 
 	return {
 		...defaultSettings,
 		...settings,
+		accentColour,
 		defaultTableRows,
 	};
 }
@@ -136,7 +148,5 @@ export function applyVisualSettings(settings: UserSettings) {
 	root.dataset.motion = settings.reducedMotion ? "reduced" : "full";
 	root.dataset.contrast = settings.highContrast ? "high" : "default";
 	root.dataset.focus = settings.alwaysShowFocus ? "always" : "default";
-	root.dataset.targetSize = settings.largerClickTargets
-		? "large"
-		: "default";
+	root.dataset.targetSize = settings.largerClickTargets ? "large" : "default";
 }

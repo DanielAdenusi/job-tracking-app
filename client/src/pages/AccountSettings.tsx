@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Link, Navigate, useParams } from "react-router";
+import { Navigate, useParams } from "react-router";
 import {
 	Accessibility,
 	ArchiveRestore,
@@ -27,7 +27,7 @@ import { useAuth } from "../auth/useAuth";
 import { ConfirmationModal } from "../components/ConfirmationModal";
 import { useToast } from "../components/ToastProvider";
 import { useAccountSettings } from "../context/AccountSettingsContext";
-import { Button } from "../components/ui/Button";
+import { Button, ButtonLink } from "../components/ui/Button";
 import {
 	Checkbox as UiCheckbox,
 	SegmentedControl as UiSegmentedControl,
@@ -81,7 +81,7 @@ const accentOptions: {
 	value: AccentColour;
 	className: string;
 }[] = [
-	{ label: "Teal", value: "teal", className: "bg-teal-500" },
+	{ label: "Brand", value: "brand", className: "bg-[#0EA89A]" },
 	{ label: "Blue", value: "blue", className: "bg-blue-600" },
 	{ label: "Purple", value: "purple", className: "bg-violet-600" },
 	{ label: "Green", value: "green", className: "bg-emerald-500" },
@@ -191,7 +191,7 @@ function AccountRow({
 	return (
 		<section className="grid gap-4 py-7 md:grid-cols-[2.25rem_minmax(0,1fr)]">
 			<span
-				className={`grid h-9 w-9 place-items-center rounded-lg border  ${className}`}
+				className={`grid h-9 w-9 place-items-center rounded-lg border ${className}`}
 			>
 				<Icon size={18} strokeWidth={2.4} />
 			</span>
@@ -598,20 +598,21 @@ export function AccountSettingsPage() {
 						const isActive = activeTab === tab.id;
 
 						return (
-							<Link
+							<ButtonLink
+								variant="text"
 								key={tab.id}
 								to={`/account/${tab.id}`}
 								role="tab"
 								aria-selected={isActive}
 								className={[
-									"flex h-11 shrink-0 items-center border-b-2 text-sm font-black transition",
+									"border-b-2",
 									isActive
-										? "border-slate-950 text-slate-950"
+										? "border-(--app-accent) app-accent-text"
 										: "border-transparent text-slate-500 hover:text-slate-900",
 								].join(" ")}
 							>
 								{tab.label}
-							</Link>
+							</ButtonLink>
 						);
 					})}
 				</div>
@@ -659,7 +660,7 @@ export function AccountSettingsPage() {
 													"inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-xs font-bold transition",
 													settings.accentColour ===
 													option.value
-														? "border-blue-200 bg-blue-50 text-blue-700"
+														? "app-accent-surface app-accent-text app-accent-ring border-transparent ring-1"
 														: "border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
 												].join(" ")}
 											>

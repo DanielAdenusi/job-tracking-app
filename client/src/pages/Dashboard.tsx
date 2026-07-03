@@ -130,14 +130,14 @@ export function DashboardPage() {
 			value: dashboard.totalApplications,
 			helper: "Across all stages",
 			icon: BriefcaseBusiness,
-			color: "bg-emerald-100 text-emerald-700",
+			color: "bg-slate-500 text-slate-50",
 		},
 		{
 			label: "Active roles",
 			value: Math.max(activeApplications, 0),
 			helper: "Still in progress",
 			icon: TrendingUp,
-			color: "bg-blue-100 text-blue-700",
+			color: "bg-blue-500 text-blue-50",
 		},
 		{
 			label: "Interviews",
@@ -147,7 +147,7 @@ export function DashboardPage() {
 					? "Interview stage"
 					: "No interviews yet",
 			icon: CalendarClock,
-			color: "bg-amber-100 text-amber-700",
+			color: "bg-amber-500 text-amber-50",
 		},
 		{
 			label: "Offers",
@@ -155,7 +155,7 @@ export function DashboardPage() {
 			helper:
 				dashboard.offerCount > 0 ? "Great progress" : "No offers yet",
 			icon: Trophy,
-			color: "bg-orange-100 text-orange-700",
+			color: "bg-emerald-500 text-emerald-50",
 		},
 	];
 
@@ -195,21 +195,21 @@ export function DashboardPage() {
 
 			<div className="grid gap-6 xl:grid-cols-[1fr_420px]">
 				<section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/40 md:p-6">
-					<div className="mb-4 flex items-center justify-between gap-4">
+					<div className="mb-2 pb-4 flex items-center justify-between gap-4  border-b border-slate-200">
 						<h2 className="font-bold text-slate-950">
 							Recent applications
 						</h2>
 						<Link
 							to="/applications/new"
-							className="text-sm font-medium text-slate-500 transition hover:text-slate-950"
+							className="text-sm font-medium text-slate-500 transition hover:text-slate-950 group"
 						>
-							<Plus className="mr-1 inline-block h-4 w-4" />
+							<Plus className="mr-1 inline-block h-4 w-4 transition group-hover:-translate-y-0.5" />
 							Add application
 						</Link>
 					</div>
 
 					{dashboard.recentApplications.length === 0 ? (
-						<div className="border-y border-slate-200 py-8 text-center">
+						<div className="py-8 text-center">
 							<p className="font-bold text-slate-700">
 								No applications added yet.
 							</p>
@@ -219,65 +219,77 @@ export function DashboardPage() {
 							</p>
 						</div>
 					) : (
-						<div className="divide-y divide-slate-200 border-y border-slate-200">
+						<div className="flex flex-col gap-3">
 							{dashboard.recentApplications.map((application) => {
 								const progress =
 									getApplicationProgress(application);
+								const isLastItem =
+									dashboard.recentApplications.indexOf(
+										application,
+									) ===
+									dashboard.recentApplications.length - 1;
 
 								return (
-									<Link
-										key={application.id}
-										to={`/applications/${application.id}`}
-										className="-mx-3 block rounded-xl px-3 py-4 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-sm hover:shadow-slate-200/80 hover:ring-1 hover:ring-slate-200/80"
-									>
-										<div className="flex items-start justify-between gap-4">
-											<div>
-												<p className="text-sm font-bold text-slate-700">
-													{application.role}
-												</p>
-												<p className="mt-1 text-xs font-normal text-slate-500">
-													{application.company}
-													{application.location
-														? ` - ${application.location}`
-														: ""}
-												</p>
-											</div>
+									<>
+										<Link
+											key={application.id}
+											to={`/applications/${application.id}`}
+											className="-mx-3 block px-3 py-4 rounded-xl transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-white  hover:shadow-sm hover:shadow-slate-200/80 hover:ring-1 hover:ring-slate-200/80"
+										>
+											<div className="flex items-start justify-between gap-4">
+												<div>
+													<p className="text-sm font-bold text-slate-700">
+														{application.role}
+													</p>
+													<p className="mt-1 text-xs font-normal text-slate-500">
+														{application.company}
+														{application.location
+															? ` - ${application.location}`
+															: ""}
+													</p>
+												</div>
 
-											<span
-												className={[
-													"rounded-full px-3 py-1 text-xs font-bold ring-1",
-													applicationStatusBadgeClasses[
-														application.status
-													],
-												].join(" ")}
-											>
-												{
-													applicationStatusLabels[
-														application.status
-													]
-												}
-											</span>
-										</div>
-
-										<div className="mt-4">
-											<div className="h-1 rounded-full bg-slate-100">
-												<div
-													className="h-full rounded-full bg-lime-400"
-													style={{
-														width: `${progress.percent}%`,
-													}}
-												/>
-											</div>
-
-											<div className="mt-2 flex items-center justify-between gap-4 text-xs font-medium text-slate-400">
-												<span>{progress.stage}</span>
-												<span>
-													{progress.percent}%
-													completed
+												<span
+													className={[
+														"rounded-full px-3 py-1 text-xs font-bold ring-1",
+														applicationStatusBadgeClasses[
+															application.status
+														],
+													].join(" ")}
+												>
+													{
+														applicationStatusLabels[
+															application.status
+														]
+													}
 												</span>
 											</div>
-										</div>
-									</Link>
+
+											<div className="mt-4">
+												<div className="h-1 rounded-full bg-slate-100">
+													<div
+														className="h-full rounded-full bg-lime-400"
+														style={{
+															width: `${progress.percent}%`,
+														}}
+													/>
+												</div>
+
+												<div className="mt-2 flex items-center justify-between gap-4 text-xs font-medium text-slate-400">
+													<span>
+														{progress.stage}
+													</span>
+													<span>
+														{progress.percent}%
+														completed
+													</span>
+												</div>
+											</div>
+										</Link>
+										{!isLastItem && (
+											<hr className="border-slate-200" />
+										)}
+									</>
 								);
 							})}
 						</div>
@@ -287,15 +299,13 @@ export function DashboardPage() {
 				<section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/40 md:p-6">
 					<div className="mb-4 flex items-center justify-between gap-4">
 						<h2 className="font-bold text-slate-950">Overview</h2>
-						<span className="group">
-							<Link
-								to="/applications"
-								className="text-sm font-medium text-slate-500 transition group-hover:text-slate-950"
-							>
-								All
-								<ArrowRight className="ml-1 inline-block h-4 w-4 transition group-hover:translate-x-0.5" />
-							</Link>
-						</span>
+						<Link
+							to="/applications"
+							className="text-sm font-medium text-slate-500 transition group hover:text-slate-950"
+						>
+							All
+							<ArrowRight className="ml-1 inline-block h-4 w-4 transition group-hover:translate-x-0.5" />
+						</Link>
 					</div>
 
 					<div className="border-t border-slate-200 pt-5">
@@ -347,7 +357,7 @@ export function DashboardPage() {
 			</div>
 
 			<section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/40 md:p-6">
-				<div className="mb-6 flex items-end justify-between gap-4 border-b border-slate-200 pb-3">
+				<div className="mb-2 flex items-end justify-between gap-4 border-b border-slate-200 pb-4">
 					<div>
 						<h2 className="font-bold text-slate-950">
 							Upcoming follow-ups
@@ -356,7 +366,7 @@ export function DashboardPage() {
 							Applications you may need to chase soon.
 						</p>
 					</div>
-					<span className="rounded-md bg-slate-200/60 px-2.5 py-1 text-xs font-bold text-slate-500">
+					<span className="app-accent-surface app-accent-text app-accent-ring rounded-md px-2.5 py-1 text-xs font-extrabold ring-1">
 						{dashboard.upcomingFollowUpCount} due
 					</span>
 				</div>
@@ -371,29 +381,45 @@ export function DashboardPage() {
 						</p>
 					</div>
 				) : (
-					<div className="divide-y divide-slate-200 border-y border-slate-200">
-						{dashboard.upcomingFollowUps.map((application) => (
-							<Link
-								key={application.id}
-								to={`/applications/${application.id}`}
-								className="-mx-3 block rounded-xl px-3 py-4 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-sm hover:shadow-slate-200/80 hover:ring-1 hover:ring-slate-200/80"
-							>
-								<div className="flex items-start justify-between gap-4">
-									<div>
-										<p className="font-extrabold text-slate-950">
-											{application.role}
-										</p>
-										<p className="mt-1 text-sm font-semibold text-slate-500">
-											{application.company}
-										</p>
-									</div>
+					<div className="flex flex-col gap-3 border-slate-200">
+						{dashboard.upcomingFollowUps.map((application) => {
+							const isLastItem =
+								dashboard.upcomingFollowUps.indexOf(
+									application,
+								) ===
+								dashboard.upcomingFollowUps.length - 1;
 
-									<span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">
-										{formatDate(application.followUpAt)}
-									</span>
-								</div>
-							</Link>
-						))}
+							return (
+								<>
+									<Link
+										key={application.id}
+										to={`/applications/${application.id}`}
+										className="-mx-3 block rounded-xl px-3 py-4 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-sm hover:shadow-slate-200/80 hover:ring-1 hover:ring-slate-200/80"
+									>
+										<div className="flex items-start justify-between gap-4">
+											<div>
+												<p className="font-extrabold text-slate-950">
+													{application.role}
+												</p>
+												<p className="mt-1 text-sm font-semibold text-slate-500">
+													{application.company}
+												</p>
+											</div>
+
+											<span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">
+												{formatDate(
+													application.followUpAt,
+												)}
+											</span>
+										</div>
+									</Link>
+
+									{!isLastItem && (
+										<hr className="border-slate-200" />
+									)}
+								</>
+							);
+						})}
 					</div>
 				)}
 			</section>

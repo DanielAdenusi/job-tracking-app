@@ -1,11 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
-import {
-	Building2,
-	CalendarDays,
-	GripVertical,
-	Plus,
-} from "lucide-react";
+import { Building2, CalendarDays, GripVertical, Plus } from "lucide-react";
 
 import {
 	getApplications,
@@ -13,6 +8,7 @@ import {
 } from "../services/applicationsApi";
 import { EmptyState, Spinner } from "../components/ui/Surface";
 import { SearchInput, Select } from "../components/ui/FormControls";
+import { ButtonLink } from "../components/ui/Button";
 
 import {
 	APPLICATION_STATUSES,
@@ -267,12 +263,14 @@ export function KanbanPage() {
 						search pipeline.
 					</p>
 
-					<Link
+					<ButtonLink
 						to="/applications/new"
-						className="mt-5 inline-flex h-11 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-bold text-white shadow-sm shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700"
+						variant="primary"
+						className="mt-5"
 					>
+						<Plus size={17} strokeWidth={2.5} />
 						Add application
-					</Link>
+					</ButtonLink>
 				</EmptyState>
 			) : (
 				<>
@@ -331,18 +329,18 @@ export function KanbanPage() {
 								</Select>
 							</label>
 
-							<Link
+							<ButtonLink
 								to="/applications/new"
-								className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-bold text-white shadow-sm shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700"
+								variant="primary"
 							>
 								<Plus size={17} strokeWidth={2.5} />
 								Add Application
-							</Link>
+							</ButtonLink>
 						</div>
 					</div>
 
 					<div className="-mx-2 min-h-0 flex-1 overflow-x-auto overflow-y-hidden px-2 pb-3">
-						<div className="grid h-full min-h-0 w-max auto-cols-73.5 grid-flow-col grid-rows-1 gap-4">
+						<div className="grid h-full min-h-0 w-max auto-cols-73.5 grid-flow-col grid-rows-1 gap-4 pt-2">
 							{columns.map((column) => (
 								<section
 									key={column.status}
@@ -358,12 +356,12 @@ export function KanbanPage() {
 									}
 									onDrop={handleColumnDrop(column.status)}
 									className={[
-										"flex h-full min-h-0 w-73.5 shrink-0 flex-col rounded-xl border p-4 transition",
+										"flex h-full min-h-0 w-73.5 shrink-0 flex-col rounded-xl p-4 transition",
 										applicationStatusColumnClasses[
 											column.status
 										],
 										dragOverStatus === column.status
-											? "ring-4 ring-blue-200"
+											? "app-accent-ring ring-4"
 											: "",
 									].join(" ")}
 								>
@@ -390,7 +388,7 @@ export function KanbanPage() {
 										</span>
 									</div>
 
-									<div className="grid min-h-0 content-start gap-3 overflow-y-auto pr-1">
+									<div className="grid min-h-0 content-start gap-3 overflow-y-auto p-1">
 										{column.applications.length === 0 ? (
 											<div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-xs text-slate-400">
 												<p className="font-bold">
@@ -423,13 +421,13 @@ export function KanbanPage() {
 															)}
 															onDragEnd={endDrag}
 															className={[
-																"block rounded-xl border border-neutral-200 bg-white p-4 text-left shadow-sm shadow-blue-100/50 transition group",
+																"kanban-application-card block rounded-xl border border-neutral-200 bg-white p-4 text-left shadow-sm shadow-blue-100/50 transition group",
 																isUpdating
 																	? "cursor-wait opacity-70"
 																	: "cursor-grab active:cursor-grabbing",
 																isDragging
-																	? "scale-[0.98] opacity-50 ring-4 ring-blue-100"
-																	: "hover:shadow-md hover:ring-1 hover:ring-blue-100 hover:border-blue-200",
+																	? "app-accent-ring scale-[0.98] opacity-50 ring-4"
+																	: "app-accent-ring hover:shadow-md hover:ring-1 hover:border-(--app-accent)",
 															].join(" ")}
 														>
 															<div className="flex items-center justify-between gap-3">
@@ -452,7 +450,7 @@ export function KanbanPage() {
 																	strokeWidth={
 																		2.5
 																	}
-																	className="text-slate-300 hidden group-hover:inline-block"
+																	className="kanban-drag-handle hidden text-slate-300 opacity-70 transition group-hover:inline-block group-hover:opacity-100 "
 																/>
 															</div>
 

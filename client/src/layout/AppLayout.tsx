@@ -19,6 +19,9 @@ import {
 	User2,
 	ArrowLeft,
 	Heart,
+	Sun,
+	Monitor,
+	Moon,
 } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 import type { ApplicationStatus } from "../constants/applicationOptions";
@@ -26,6 +29,9 @@ import { PAGE_HEADERS } from "../constants/pageHeaders";
 import { ConfirmationModal } from "../components/ConfirmationModal";
 import { getApplications } from "../services/applicationsApi";
 import { PageHeading } from "../components/PageHeading";
+import { useAccountSettings } from "../context/AccountSettingsContext";
+import type { Theme } from "../lib/accountSettings";
+import { ButtonLink } from "../components/ui/Button";
 
 const mainNavItems = [
 	{
@@ -91,14 +97,24 @@ const pipelineItems = [
 const sidebarItemBase =
 	"group relative flex min-h-10 items-center gap-3 rounded-xl px-4 text-sm font-bold transition duration-200 ease-out";
 const sidebarItemInactive =
-	"text-slate-500 hover:-translate-y-0.5 hover:bg-white hover:text-slate-950 hover:shadow-sm hover:shadow-slate-200/80 hover:ring-1 hover:ring-slate-200/80";
+	"sidebar-item-inactive text-slate-500 hover:-translate-y-0.5 hover:bg-white hover:text-slate-950 hover:shadow-sm hover:shadow-slate-200/80 hover:ring-1 hover:ring-slate-200/80";
 const sidebarItemActive =
-	"bg-blue-50 text-blue-700 shadow-sm shadow-blue-100 ring-1 ring-blue-100";
+	"sidebar-item-active app-accent-surface app-accent-text app-accent-shadow app-accent-ring shadow-sm ring-1";
 const sidebarIconInactive =
-	"text-slate-400 transition-colors group-hover:text-blue-600";
-const sidebarIconActive = "text-blue-700";
+	"sidebar-icon-inactive text-slate-400 transition-colors";
+const sidebarIconActive = "app-accent-text";
 const sidebarDangerButton =
-	"flex min-h-10 items-center gap-3 rounded-xl px-4 text-left text-sm font-bold text-slate-500 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-red-50 hover:text-red-700 hover:shadow-sm hover:shadow-red-100 hover:ring-1 hover:ring-red-100";
+	"sidebar-danger-button flex min-h-10 items-center gap-3 rounded-xl px-4 text-left text-sm font-bold text-slate-500 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-red-50 hover:text-red-700 hover:shadow-sm hover:shadow-red-100 hover:ring-1 hover:ring-red-100";
+
+const themeOptions = [
+	{ value: "light", label: "Light theme", icon: Sun },
+	{ value: "system", label: "System theme", icon: Monitor },
+	{ value: "dark", label: "Dark theme", icon: Moon },
+] as const satisfies readonly {
+	value: Theme;
+	label: string;
+	icon: LucideIcon;
+}[];
 
 type HeaderAction = {
 	label: string;
@@ -327,11 +343,11 @@ function SidebarLink({
 			].join(" ")}
 		>
 			{isActive && (
-				<span className="absolute -left-5 h-6 w-1 rounded-r-full bg-blue-600" />
+				<span className="app-accent-bg absolute -left-5 h-6 w-1 rounded-r-full" />
 			)}
 
 			{isPipelineSelected && isApplicationLink && (
-				<span className="absolute -left-5 h-6 w-1 rounded-r-full bg-blue-600 opacity-25" />
+				<span className="app-accent-bg absolute -left-5 h-6 w-1 rounded-r-full opacity-25" />
 			)}
 
 			<Icon
@@ -376,7 +392,7 @@ function PipelineLink({
 			].join(" ")}
 		>
 			{isActive && (
-				<span className="absolute -left-5 h-6 w-1 rounded-r-full bg-blue-600" />
+				<span className="app-accent-bg absolute -left-5 h-6 w-1 rounded-r-full" />
 			)}
 
 			<Icon
@@ -392,7 +408,7 @@ function PipelineLink({
 					className={[
 						"ml-auto inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-xs font-black",
 						isActive
-							? "bg-blue-100 text-blue-700"
+							? "app-accent-surface app-accent-text"
 							: "bg-slate-100 text-slate-500",
 					].join(" ")}
 				>
@@ -400,6 +416,76 @@ function PipelineLink({
 				</span>
 			)}
 		</Link>
+	);
+}
+
+function ThemeSelector() {
+	const { settings, saveSettings, isLoadingSettings } = useAccountSettings();
+	const [pendingTheme, setPendingTheme] = useState<Theme | null>(null);
+	const selectedTheme = pendingTheme ?? settings.theme;
+	const selectedIndex = themeOptions.findIndex(
+		(option) => option.value === selectedTheme,
+	);
+	const indicatorIndex = Math.max(selectedIndex, 0);
+
+	async function updateTheme(theme: Theme) {
+		if (theme === selectedTheme) return;
+
+		setPendingTheme(theme);
+
+		try {
+			await saveSettings({
+				...settings,
+				theme,
+			});
+		} finally {
+			setPendingTheme(null);
+		}
+	}
+
+	return (
+		<div
+			className="relative grid grid-cols-3 gap-3 overflow-hidden rounded-full border border-slate-200 p-2 shadow-xs"
+			role="radiogroup"
+			aria-label="Theme"
+		>
+			<span
+				aria-hidden="true"
+				className="app-accent-indicator absolute left-2 top-2 h-8 rounded-full shadow-sm ring-1 transition-transform duration-300 ease-out"
+				style={{
+					width: "calc((100% - 2.5rem) / 3)",
+					transform: `translateX(calc(${indicatorIndex * 100}% + ${
+						indicatorIndex * 0.75
+					}rem))`,
+				}}
+			/>
+
+			{themeOptions.map((option) => {
+				const Icon = option.icon;
+				const isSelected = selectedTheme === option.value;
+
+				return (
+					<button
+						key={option.value}
+						type="button"
+						role="radio"
+						aria-checked={isSelected}
+						aria-label={option.label}
+						title={option.label}
+						disabled={isLoadingSettings || pendingTheme !== null}
+						onClick={() => void updateTheme(option.value)}
+						className={[
+							"theme-selector-option relative z-10 grid h-8 place-items-center rounded-full transition duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-70",
+							isSelected
+								? ""
+								: "text-slate-500 hover:bg-slate-100 hover:text-slate-950",
+						].join(" ")}
+					>
+						<Icon size={16} strokeWidth={2.25} />
+					</button>
+				);
+			})}
+		</div>
 	);
 }
 
@@ -412,7 +498,7 @@ function SidebarNavigation({
 }) {
 	return (
 		<>
-			<nav className="grid gap-1">
+			<nav className="grid gap-3">
 				{mainNavItems.map((item) => (
 					<SidebarLink
 						key={item.path}
@@ -430,7 +516,7 @@ function SidebarNavigation({
 					Pipeline
 				</p>
 
-				<nav className="mt-3 grid gap-1">
+				<nav className="mt-3 grid gap-2">
 					{pipelineItems.map((item) => (
 						<PipelineLink
 							key={item.status}
@@ -446,19 +532,16 @@ function SidebarNavigation({
 
 			<div aria-hidden="true" className="mt-8 flex-1"></div>
 
-			<div className="flex flex-col gap-1 border-t border-slate-200 pt-8">
-				<nav className="flex flex-col gap-1">
-					<button
-						type="button"
-						className={`${sidebarItemBase} ${sidebarItemInactive} w-full`}
-					>
-						<CircleHelp
-							size={18}
-							strokeWidth={2.5}
-							className={sidebarIconInactive}
-						/>
-						Help
-					</button>
+			<div className="flex flex-col gap-4 border-t border-slate-200 pt-6">
+				<ThemeSelector />
+
+				<nav className="flex flex-col gap-3">
+					<SidebarLink
+						to="/help"
+						label="Help"
+						icon={CircleHelp}
+						onClick={onNavigate}
+					/>
 
 					<span className="max-lg:hidden relative">
 						<SidebarLink
@@ -479,18 +562,13 @@ function HeaderActionLink({ action }: { action: HeaderAction }) {
 	const isPrimary = action.variant === "primary";
 
 	return (
-		<Link
+		<ButtonLink
 			to={action.to}
-			className={[
-				"inline-flex h-10 items-center justify-center gap-2 rounded-lg px-3 text-sm font-bold transition",
-				isPrimary
-					? "bg-blue-600 text-white shadow-sm shadow-blue-600/20 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/25"
-					: "border border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm hover:shadow-slate-200",
-			].join(" ")}
+			variant={isPrimary ? "primary" : "secondary"}
 		>
 			<Icon size={16} strokeWidth={2.5} />
 			<span>{action.label}</span>
-		</Link>
+		</ButtonLink>
 	);
 }
 
@@ -639,7 +717,7 @@ export function AppLayout() {
 					<aside className="relative flex h-full w-[min(296px,82vw)] flex-col border-r border-slate-200 bg-white shadow-2xl">
 						<div className="flex h-20 items-center justify-between border-b border-slate-200 px-6">
 							<div className="flex min-w-0 items-center gap-3">
-								<div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-blue-600 text-sm font-black text-white">
+								<div className="app-accent-bg grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-black text-white">
 									JT
 								</div>
 
@@ -688,7 +766,7 @@ export function AppLayout() {
 							to="/"
 							className="flex min-h-11 min-w-0 items-center gap-3 rounded-xl px-2 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-sm hover:shadow-slate-200/80 hover:ring-1 hover:ring-slate-200/80"
 						>
-							<div className="grid h-9 w-9 place-items-center rounded-lg bg-blue-600 text-lg font-black text-white">
+							<div className="app-accent-bg grid h-9 w-9 place-items-center rounded-lg text-lg font-black text-white">
 								JT
 							</div>
 

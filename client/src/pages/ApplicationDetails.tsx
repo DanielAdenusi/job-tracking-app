@@ -25,7 +25,7 @@ import {
 import type { ApplicationStatus } from "../constants/applicationOptions";
 import type { Application } from "../types/application";
 import { ConfirmationModal } from "../components/ConfirmationModal";
-import { Button } from "../components/ui/Button";
+import { Button, ButtonLink } from "../components/ui/Button";
 import { IconButton } from "../components/ui/IconButton";
 import { Textarea } from "../components/ui/FormControls";
 import { APP_NAME } from "../constants/pageTitle";
@@ -341,30 +341,29 @@ export function ApplicationDetailsPage() {
 
 					<div className="flex flex-wrap items-center gap-3">
 						{application.jobUrl && (
-							<a
-								href={application.jobUrl}
+							<ButtonLink
+								to={application.jobUrl}
 								target="_blank"
 								rel="noreferrer"
-								className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 shadow-sm shadow-slate-200/40 transition hover:-translate-y-0.5 hover:border-slate-300"
+								variant="secondary"
 							>
 								<ExternalLink size={16} strokeWidth={2.5} />
 								Open Post
-							</a>
+							</ButtonLink>
 						)}
 
-						<Link
+						<ButtonLink
 							to={`/applications/${application.id}/edit`}
-							className="inline-flex h-11 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-bold text-white shadow-sm shadow-blue-600/25 transition hover:-translate-y-0.5 hover:bg-blue-700"
+							variant="primary"
+							icon={<Pencil size={16} strokeWidth={2.5} />}
 						>
-							<Pencil size={16} strokeWidth={2.5} />
 							Edit Record
-						</Link>
+						</ButtonLink>
 
 						<IconButton
 							onClick={() => setIsDeleteModalOpen(true)}
 							label={`Delete ${application.role}`}
 							tone="danger"
-							className="h-11 w-11 border border-red-100 bg-white shadow-sm shadow-slate-200/40"
 						>
 							<Trash2 size={16} strokeWidth={2.5} />
 						</IconButton>
@@ -389,7 +388,7 @@ export function ApplicationDetailsPage() {
 								Priority
 							</dt>
 							<dd className="mt-2">
-								<span className="rounded-md bg-violet-50 px-3 py-1 text-xs font-bold text-violet-700 ring-1 ring-violet-200">
+								<span className="rounded-md bg-violet-50 px-4 py-1 text-xs font-bold text-violet-700 ring-1 ring-violet-200">
 									{formatOption(application.priority)}
 								</span>
 							</dd>
@@ -506,9 +505,9 @@ export function ApplicationDetailsPage() {
 									</p>
 									{isCurrentStatus && nextStatus && (
 										<Button
-											variant="secondary"
+											variant="ghost"
 											size="sm"
-											className="mt-2 h-auto border-0 bg-transparent px-0 text-xs font-bold text-blue-500 shadow-none hover:translate-y-0 hover:bg-transparent hover:text-blue-700 hover:shadow-none"
+											className="mt-4"
 											onClick={() =>
 												handleMarkNextStatus(nextStatus)
 											}
@@ -541,7 +540,7 @@ export function ApplicationDetailsPage() {
 						value={notesDraft}
 						onChange={(event) => setNotesDraft(event.target.value)}
 						placeholder="Add notes about the role, required skills, or interview prep..."
-						className="block box-border min-h-56 w-full max-w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-7 text-slate-600 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+						className="min-h-56"
 					/>
 
 					<div className="flex min-w-0 flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -550,7 +549,6 @@ export function ApplicationDetailsPage() {
 								onClick={() => setIsDiscardNotesModalOpen(true)}
 								disabled={isSavingNotes}
 								variant="secondary"
-								size="sm"
 							>
 								Discard Changes
 							</Button>
@@ -559,8 +557,8 @@ export function ApplicationDetailsPage() {
 						<Button
 							onClick={handleSaveNotes}
 							disabled={isSavingNotes || !notesHaveChanges}
-							variant="ghost"
-							size="sm"
+							variant="primary"
+							isLoading={isSavingNotes}
 						>
 							{isSavingNotes ? "Saving..." : "Save Notes"}
 						</Button>

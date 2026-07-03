@@ -1,33 +1,115 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { Link, type LinkProps } from "react-router";
 import { cn } from "./classes";
+import { Spinner } from "./Surface";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "dangerSoft";
-type ButtonSize = "sm" | "md" | "lg";
+type ButtonTone = "neutral" | "accent" | "danger" | "dangerSoft" | "link";
+
+type ButtonStyleVariant = "primary" | "secondary" | "ghost" | "text";
+
+type ButtonVariant = ButtonStyleVariant | ButtonTone;
+
+type ButtonSize = "sm" | "md" | "lg" | "inline";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 	variant?: ButtonVariant;
 	size?: ButtonSize;
 	icon?: ReactNode;
+	tone?: ButtonTone;
+	isLoading?: boolean;
 };
 
-const variantClasses: Record<ButtonVariant, string> = {
-	primary:
-		"bg-blue-600 text-white shadow-sm shadow-blue-600/20 hover:-translate-y-0.5 hover:bg-blue-700",
-	secondary:
-		"border border-slate-200 bg-white text-slate-800 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm",
-	ghost:
-		"bg-slate-100 text-slate-700 hover:-translate-y-0.5 hover:bg-white hover:shadow-sm hover:ring-1 hover:ring-slate-200",
-	danger:
-		"bg-red-600 text-white shadow-sm shadow-red-600/20 hover:bg-red-700",
+type ButtonLinkProps = LinkProps & ButtonProps;
+
+const baseVariantClass = "hover:shadow-sm hover:-translate-y-0.5";
+
+export const buttonVariantClasses: Record<ButtonVariant, string> = {
+	primary: `app-accent-button shadow-sm ${baseVariantClass}`,
+	secondary: `border ${baseVariantClass}`,
+	ghost: `${baseVariantClass}`,
+	text: `underline decoration-transparent hover:decoration-current`,
+	neutral: `border ${baseVariantClass}`,
+	accent: `border ${baseVariantClass}`,
+	link: `hover:ring-1 ${baseVariantClass}`,
+	danger: `border ${baseVariantClass}`,
+	dangerSoft: `border ${baseVariantClass}`,
+};
+
+export const buttonToneClasses: Record<ButtonTone, string> = {
+	neutral:
+		"button-neutral bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-700 hover:ring-slate-200",
+	accent: "button-accent app-accent-text hover:bg-slate-50 ",
+	link: "button-link text-slate-400 border-blue-200 hover:bg-blue-50 hover:text-blue-600 hover:ring-blue-200",
+	danger: "button-danger text-red-400 border-red-200 hover:bg-red-50 hover:text-red-600 hover:ring-red-200",
 	dangerSoft:
-		"border border-red-200 bg-white text-red-700 hover:bg-red-50",
+		"button-danger-soft text-red-400 border-red-200 hover:bg-red-50 hover:text-red-600 hover:ring-red-200",
 };
 
-const sizeClasses: Record<ButtonSize, string> = {
+export const buttonSizeClasses: Record<ButtonSize, string> = {
 	sm: "h-9 px-3 text-sm",
 	md: "h-10 px-4 text-sm",
 	lg: "h-11 px-5 text-sm",
+	inline: "text-sm ms-1",
 };
+
+const toneVariants = new Set<ButtonVariant>([
+	"neutral",
+	"accent",
+	"danger",
+	"dangerSoft",
+	"link",
+]);
+
+function isButtonTone(variant: ButtonVariant): variant is ButtonTone {
+	return toneVariants.has(variant);
+}
+
+function resolveButtonClasses({
+	variant,
+	tone,
+}: {
+	variant: ButtonVariant;
+	tone?: ButtonTone;
+}) {
+	const resolvedTone = tone ?? (isButtonTone(variant) ? variant : undefined);
+
+	return {
+		variantClass: buttonVariantClasses[variant],
+		toneClass:
+			resolvedTone || variant !== "primary"
+				? buttonToneClasses[resolvedTone ?? "neutral"]
+				: undefined,
+	};
+}
+
+export function buttonClassNames({
+	className,
+	size = "md",
+	variant = "secondary",
+	tone,
+}: {
+	className?: string;
+	size?: ButtonSize;
+	variant?: ButtonVariant;
+	tone?: ButtonTone;
+}) {
+	const { variantClass, toneClass } = resolveButtonClasses({ variant, tone });
+
+	const isTextVariant = variant === "text";
+	const extraClass = isTextVariant ? "" : "rounded-lg font-bold";
+
+	const baseClasses = `inline-flex items-center justify-center gap-2 transition disabled:cursor-not-allowed disabled:opacity-40 ${extraClass}`;
+
+	const combinedClassName = cn(
+		baseClasses,
+		variantClass,
+		buttonSizeClasses[size],
+		!isTextVariant ? toneClass : undefined,
+		className,
+	);
+
+	return combinedClassName;
+}
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 	(
@@ -35,9 +117,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 			children,
 			className,
 			type = "button",
+			tone,
 			variant = "secondary",
 			size = "md",
 			icon,
+			isLoading,
 			...props
 		},
 		ref,
@@ -45,18 +129,40 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 		<button
 			ref={ref}
 			type={type}
-			className={cn(
-				"inline-flex items-center justify-center gap-2 rounded-lg font-bold transition disabled:cursor-not-allowed disabled:opacity-60",
-				variantClasses[variant],
-				sizeClasses[size],
-				className,
-			)}
+			className={buttonClassNames({ className, size, variant, tone })}
 			{...props}
 		>
-			{icon}
+			{isLoading ? <Spinner size="sm" /> : icon}
 			{children}
 		</button>
 	),
 );
 
 Button.displayName = "Button";
+
+export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
+	(
+		{
+			children,
+			className,
+			tone,
+			variant = "secondary",
+			size = "md",
+			icon,
+			isLoading,
+			...props
+		},
+		ref,
+	) => (
+		<Link
+			ref={ref}
+			className={buttonClassNames({ className, size, variant, tone })}
+			{...props}
+		>
+			{isLoading ? <Spinner size="sm" /> : icon}
+			{children}
+		</Link>
+	),
+);
+
+ButtonLink.displayName = "ButtonLink";

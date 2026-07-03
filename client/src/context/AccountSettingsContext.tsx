@@ -35,11 +35,28 @@ export function AccountSettingsProvider({ children }: { children: ReactNode }) {
 	const { user, isAuthLoading } = useAuth();
 	const [settings, setSettings] = useState<UserSettings>(loadLocalSettings);
 	const [isLoadingSettings, setIsLoadingSettings] = useState(false);
+	const visualSettings = user ? settings : defaultSettings;
 
 	useEffect(() => {
-		applyVisualSettings(settings);
-		saveLocalSettings(settings);
-	}, [settings]);
+		applyVisualSettings(visualSettings);
+
+		if (user) {
+			saveLocalSettings(settings);
+		}
+	}, [settings, user, visualSettings]);
+
+	useEffect(() => {
+		if (visualSettings.theme !== "system") return;
+
+		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+		const handleThemeChange = () => applyVisualSettings(visualSettings);
+
+		mediaQuery.addEventListener("change", handleThemeChange);
+
+		return () => {
+			mediaQuery.removeEventListener("change", handleThemeChange);
+		};
+	}, [visualSettings]);
 
 	useEffect(() => {
 		if (isAuthLoading || !user) return;

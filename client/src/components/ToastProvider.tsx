@@ -13,6 +13,7 @@ type Toast = {
 	id: number;
 	message: string;
 	tone: ToastTone;
+	state: "visible" | "leaving";
 };
 
 type ToastContextValue = {
@@ -24,18 +25,31 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 export function ToastProvider({ children }: { children: ReactNode }) {
 	const [toasts, setToasts] = useState<Toast[]>([]);
 
+	const dismissToast = useCallback((id: number) => {
+		setToasts((current) =>
+			current.map((toast) =>
+				toast.id === id ? { ...toast, state: "leaving" } : toast,
+			),
+		);
+
+		window.setTimeout(() => {
+			setToasts((current) => current.filter((toast) => toast.id !== id));
+		}, 260);
+	}, []);
+
 	const showToast = useCallback(
 		(message: string, tone: ToastTone = "info") => {
 			const id = Date.now();
 
-			setToasts((current) => [...current, { id, message, tone }]);
+			setToasts((current) => [
+				...current,
+				{ id, message, tone, state: "visible" },
+			]);
 			window.setTimeout(() => {
-				setToasts((current) =>
-					current.filter((toast) => toast.id !== id),
-				);
+				dismissToast(id);
 			}, 3200);
 		},
-		[],
+		[dismissToast],
 	);
 
 	const value = useMemo(() => ({ showToast }), [showToast]);
@@ -46,13 +60,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 			<div
 				aria-live="polite"
 				aria-atomic="true"
-				className="fixed right-4 top-4 z-80 grid w-[min(24rem,calc(100vw-2rem))] gap-3"
+				className="fixed left-4 top-4 z-80 grid w-[min(24rem,calc(100vw-2rem))] gap-3"
 			>
 				{toasts.map((toast) => (
 					<div
 						key={toast.id}
 						className={[
-							"toast-enter relative flex items-center gap-2 overflow-hidden rounded-r-lg border border-slate-200 bg-white px-6 py-4 text-sm font-bold text-slate-800 shadow-lg shadow-slate-50/10",
+							"relative flex items-center gap-2 overflow-hidden rounded-r-lg border border-slate-200 bg-white px-6 py-4 text-sm font-bold text-slate-800 shadow-lg shadow-slate-50/10",
+							toast.state === "leaving"
+								? "toast-exit"
+								: "toast-enter",
 						].join(" ")}
 					>
 						<span

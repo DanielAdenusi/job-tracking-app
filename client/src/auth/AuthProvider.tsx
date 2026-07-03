@@ -1,22 +1,28 @@
 import {
 	type ReactNode,
 	createContext,
+	useCallback,
 	useEffect,
 	useMemo,
 	useState,
 } from "react";
+import { type User } from "firebase/auth";
 import {
-	type User,
-	onAuthStateChanged,
-	signInWithPopup,
-	signOut,
-} from "firebase/auth";
-import { auth, googleProvider } from "../lib/firebase";
+	listenToAuthChanges,
+	loginWithEmail,
+	loginWithGoogle,
+	logout,
+	sendPasswordReset,
+	signUpWithEmail,
+} from "../services/authenticationApi";
 
 type AuthContextValue = {
 	user: User | null;
 	isAuthLoading: boolean;
+	loginWithEmail: (email: string, password: string) => Promise<void>;
 	loginWithGoogle: () => Promise<void>;
+	signUpWithEmail: (email: string, password: string) => Promise<void>;
+	sendPasswordReset: (email: string) => Promise<void>;
 	logout: () => Promise<void>;
 };
 
@@ -31,7 +37,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	const [isAuthLoading, setIsAuthLoading] = useState(true);
 
 	useEffect(() => {
-		const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+		const unsubscribe = listenToAuthChanges((firebaseUser) => {
 			setUser(firebaseUser);
 			setIsAuthLoading(false);
 		});
@@ -39,22 +45,51 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		return unsubscribe;
 	}, []);
 
-	async function loginWithGoogle() {
-		await signInWithPopup(auth, googleProvider);
-	}
+	const handleLoginWithEmail = useCallback(
+		async (email: string, password: string) => {
+			await loginWithEmail(email, password);
+		},
+		[],
+	);
 
-	async function logout() {
-		await signOut(auth);
-	}
+	const handleLoginWithGoogle = useCallback(async () => {
+		await loginWithGoogle();
+	}, []);
+
+	const handleSignUpWithEmail = useCallback(
+		async (email: string, password: string) => {
+			await signUpWithEmail(email, password);
+		},
+		[],
+	);
+
+	const handleSendPasswordReset = useCallback(async (email: string) => {
+		await sendPasswordReset(email);
+	}, []);
+
+	const handleLogout = useCallback(async () => {
+		await logout();
+	}, []);
 
 	const value = useMemo(
 		() => ({
 			user,
 			isAuthLoading,
-			loginWithGoogle,
-			logout,
+			loginWithEmail: handleLoginWithEmail,
+			loginWithGoogle: handleLoginWithGoogle,
+			signUpWithEmail: handleSignUpWithEmail,
+			sendPasswordReset: handleSendPasswordReset,
+			logout: handleLogout,
 		}),
-		[user, isAuthLoading],
+		[
+			user,
+			isAuthLoading,
+			handleLoginWithEmail,
+			handleLoginWithGoogle,
+			handleSignUpWithEmail,
+			handleSendPasswordReset,
+			handleLogout,
+		],
 	);
 
 	return (

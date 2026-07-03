@@ -12,6 +12,8 @@ import { NotFoundPage } from "./pages/NotFound";
 import { HomePage } from "./pages/Home";
 import { LoginPage } from "./pages/Auth/Login";
 import { SignUpPage } from "./pages/Auth/SignUp";
+import { ForgotPasswordPage } from "./pages/Auth/ForgotPassword";
+import { ResetPasswordPage } from "./pages/Auth/ResetPassword";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { EditApplicationPage } from "./pages/EditApplication";
 
@@ -23,9 +25,9 @@ function App() {
 			<Route
 				element={
 					<AuthLayout
-						headerTitle="Log in to your account"
-						headerSubtitle="Don't have an account?"
-						headerLinkText="Sign up"
+						headerTitle="Welcome back"
+						headerSubtitle="Sign in to keep your search on track. New here?"
+						headerLinkText="Start here"
 						linkTo="/signup"
 					/>
 				}
@@ -36,14 +38,44 @@ function App() {
 			<Route
 				element={
 					<AuthLayout
-						headerTitle="Sign up to get started"
-						headerSubtitle="Already have an account?	"
+						headerTitle="Create your workspace"
+						headerSubtitle="Track every role from first save to final answer. Already opened your workspace?"
 						headerLinkText="Log in"
 						linkTo="/login"
 					/>
 				}
 			>
 				<Route path="/signup" element={<SignUpPage />} />
+			</Route>
+
+			<Route
+				element={
+					<AuthLayout
+						headerTitle="Need a password reset?"
+						headerSubtitle="Enter your email and we will send a reset link. Remembered it?"
+						headerLinkText="Log in"
+						linkTo="/login"
+					/>
+				}
+			>
+				<Route
+					path="/forgot-password"
+					element={<ForgotPasswordPage />}
+				/>
+			</Route>
+
+			<Route
+				element={
+					<AuthLayout
+						headerTitle="Choose a new password"
+						headerSubtitle="Create a fresh password for your Job Tracker account. Need another link?"
+						headerLinkText="Start again"
+						linkTo="/forgot-password"
+						redirectAuthenticated={false}
+					/>
+				}
+			>
+				<Route path="/reset-password" element={<ResetPasswordPage />} />
 			</Route>
 
 			<Route element={<ProtectedRoute />}>
