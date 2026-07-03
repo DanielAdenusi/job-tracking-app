@@ -25,7 +25,7 @@ export function EmptyState({ children, className }: SurfaceProps) {
 	return (
 		<div
 			className={cn(
-				"rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center",
+				"rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-12 text-center",
 				className,
 			)}
 		>
@@ -53,7 +53,7 @@ export function Spinner({
 		<div className={cn("text-center", className)}>
 			<div
 				className={cn(
-					"mx-auto animate-spin rounded-full border-slate-200 border-t-blue-600",
+					"spinner mx-auto animate-spin rounded-full border-slate-200",
 					sizeClasses[size ?? "md"],
 				)}
 			/>

@@ -60,7 +60,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 			<div
 				aria-live="polite"
 				aria-atomic="true"
-				className="fixed left-4 top-4 z-80 grid w-[min(24rem,calc(100vw-2rem))] gap-3"
+				className="fixed left-6/12 -translate-x-6/12 top-4 z-80 grid w-[min(24rem,calc(100vw-2rem))] gap-3 max-md:w-[calc(100vw-2rem)]"
 			>
 				{toasts.map((toast) => (
 					<div

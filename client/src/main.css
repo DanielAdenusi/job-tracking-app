@@ -1370,3 +1370,11 @@ html[data-theme="dark"] .auth-page .auth-google-button:hover,
 html[data-theme="dark"] .auth-page .auth-loading {
 	background-color: var(--auth-paper-muted);
 }
+
+.spinner {
+	border-top-color: var(--app-accent, #0ea89a);
+}
+
+html[data-theme="dark"] .spinner {
+	border-top-color: var(--app-accent, #0ea89a);
+}

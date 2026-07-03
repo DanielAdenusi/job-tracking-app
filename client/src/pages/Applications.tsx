@@ -28,7 +28,7 @@ import {
 } from "../constants/applicationStatusStyles";
 import { applicationPriorityBadgeClasses } from "../constants/applicationPriorityStyles";
 import { ConfirmationModal } from "../components/ConfirmationModal";
-import { Button } from "../components/ui/Button";
+import { Button, ButtonLink } from "../components/ui/Button";
 import { IconButton, IconButtonLink } from "../components/ui/IconButton";
 import { EmptyState, Spinner } from "../components/ui/Surface";
 import { SearchInput, Select } from "../components/ui/FormControls";
@@ -583,17 +583,18 @@ export function ApplicationsPage() {
 					<h3 className="text-lg font-extrabold">
 						No applications yet
 					</h3>
-					<p className="mx-auto mt-2 max-w-xl leading-7 text-slate-600">
+					<p className="mx-auto max-w-xl leading-7 text-slate-500 text-sm">
 						Add your first job application to start tracking your
 						job search.
 					</p>
 
-					<Link
+					<ButtonLink
 						to="/applications/new"
-						className="mt-5 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
+						variant="primary"
+						className="mt-2"
 					>
 						Add application
-					</Link>
+					</ButtonLink>
 				</EmptyState>
 			)}
 

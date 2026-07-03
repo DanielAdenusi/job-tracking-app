@@ -668,6 +668,11 @@ export function AppLayout() {
 		}
 	}
 
+	const isAccountPage =
+		location.pathname === "/account" ||
+		location.pathname.startsWith("/account/");
+	const isMobile = window.innerWidth < 1024;
+
 	return (
 		<div className="app-shell min-h-screen bg-slate-50 text-slate-950 lg:grid lg:max-h-screen lg:grid-cols-[256px_1fr] lg:overflow-hidden">
 			<header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200 bg-white/90 px-6 backdrop-blur lg:hidden">
@@ -691,16 +696,20 @@ export function AppLayout() {
 
 				<Link
 					to="/account"
-					className="grid h-10 w-10 place-items-center rounded-full text-slate-500"
+					className="grid h-10 w-10 place-items-center rounded-full text-slate-500 "
 				>
 					{user?.photoURL ? (
 						<img
 							src={user.photoURL}
 							alt=""
-							className="h-8 w-8 rounded-full object-cover"
+							className={`h-8 w-8 rounded-full object-cover ${isMobile && isAccountPage && "app-accent-ring ring-2 shadow-sm"}`}
 						/>
 					) : (
-						<UserCircle size={24} strokeWidth={2.5} />
+						<UserCircle
+							size={32}
+							strokeWidth={2}
+							className={`${isMobile && isAccountPage && "app-accent-text"}`}
+						/>
 					)}
 				</Link>
 			</header>
