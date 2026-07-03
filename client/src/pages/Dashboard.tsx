@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
 	ArrowRight,
 	BriefcaseBusiness,
@@ -17,6 +17,7 @@ import type {
 	DashboardApplicationSummary,
 	DashboardStats,
 } from "../types/dashboard";
+import { Spinner } from "../components/ui/Surface";
 
 function formatDate(value: string | null) {
 	if (!value) return "No date set";
@@ -93,10 +94,7 @@ export function DashboardPage() {
 	if (isLoading) {
 		return (
 			<section className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-				<div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
-				<p className="mt-4 font-bold text-slate-700">
-					Loading dashboard...
-				</p>
+				<Spinner label="Loading dashboard..." />
 			</section>
 		);
 	}
@@ -230,7 +228,7 @@ export function DashboardPage() {
 									dashboard.recentApplications.length - 1;
 
 								return (
-									<>
+									<Fragment key={application.id}>
 										<Link
 											key={application.id}
 											to={`/applications/${application.id}`}
@@ -289,7 +287,7 @@ export function DashboardPage() {
 										{!isLastItem && (
 											<hr className="border-slate-200" />
 										)}
-									</>
+									</Fragment>
 								);
 							})}
 						</div>
@@ -390,9 +388,8 @@ export function DashboardPage() {
 								dashboard.upcomingFollowUps.length - 1;
 
 							return (
-								<>
+								<Fragment key={application.id}>
 									<Link
-										key={application.id}
 										to={`/applications/${application.id}`}
 										className="-mx-3 block rounded-xl px-3 py-4 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-sm hover:shadow-slate-200/80 hover:ring-1 hover:ring-slate-200/80"
 									>
@@ -417,7 +414,7 @@ export function DashboardPage() {
 									{!isLastItem && (
 										<hr className="border-slate-200" />
 									)}
-								</>
+								</Fragment>
 							);
 						})}
 					</div>

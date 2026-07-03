@@ -103,6 +103,8 @@ export function getAuthErrorMessage(error: unknown, fallback: string) {
 			return "Too many attempts. Wait a moment, then try again.";
 		case "auth/popup-closed-by-user":
 			return "The Google sign-in window was closed before finishing.";
+		case "auth/popup-blocked":
+			return "Your browser blocked the Google sign-in window. Allow popups for this site, then try again.";
 		case "auth/network-request-failed":
 			return "Check your connection, then try again.";
 		default:

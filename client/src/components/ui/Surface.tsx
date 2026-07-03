@@ -45,7 +45,7 @@ export function Spinner({
 }) {
 	const sizeClasses = {
 		sm: "h-4 w-4 border-2",
-		md: "h-8 w-8 border-4",
+		md: "h-10 w-10 border-4",
 		lg: "h-16 w-16 border-4",
 	};
 
@@ -53,11 +53,11 @@ export function Spinner({
 		<div className={cn("text-center", className)}>
 			<div
 				className={cn(
-					"mx-auto animate-spin rounded-full",
+					"mx-auto animate-spin rounded-full border-slate-200 border-t-blue-600",
 					sizeClasses[size ?? "md"],
 				)}
 			/>
-			{label && <p className="mt-4 font-bold text-slate-700">{label}</p>}
+			{label && <p className="mt-2 font-bold text-slate-700">{label}</p>}
 		</div>
 	);
 }
