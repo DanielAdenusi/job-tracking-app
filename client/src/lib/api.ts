@@ -6,15 +6,15 @@ type ApiFetchOptions = RequestInit & {
 	requireAuth?: boolean;
 };
 
-export async function apiFetch<T>(
-	path: string,
-	options: ApiFetchOptions = {},
-): Promise<T> {
-	const { requireAuth = true, headers, ...fetchOptions } = options;
-
+async function getRequestHeaders(
+	headers: HeadersInit | undefined,
+	body: BodyInit | null | undefined,
+	requireAuth: boolean,
+	forceRefreshToken = false,
+) {
 	const requestHeaders = new Headers(headers);
 
-	if (!(fetchOptions.body instanceof FormData)) {
+	if (!(body instanceof FormData)) {
 		requestHeaders.set("Content-Type", "application/json");
 	}
 
@@ -25,15 +25,40 @@ export async function apiFetch<T>(
 			throw new Error("You must be logged in to perform this action.");
 		}
 
-		const token = await user.getIdToken();
+		const token = await user.getIdToken(forceRefreshToken);
 
 		requestHeaders.set("Authorization", `Bearer ${token}`);
 	}
 
-	const response = await fetch(`${API_URL}${path}`, {
+	return requestHeaders;
+}
+
+export async function apiFetch<T>(
+	path: string,
+	options: ApiFetchOptions = {},
+): Promise<T> {
+	const { requireAuth = true, headers, ...fetchOptions } = options;
+
+	let response = await fetch(`${API_URL}${path}`, {
 		...fetchOptions,
-		headers: requestHeaders,
+		headers: await getRequestHeaders(
+			headers,
+			fetchOptions.body,
+			requireAuth,
+		),
 	});
+
+	if (requireAuth && response.status === 401) {
+		response = await fetch(`${API_URL}${path}`, {
+			...fetchOptions,
+			headers: await getRequestHeaders(
+				headers,
+				fetchOptions.body,
+				requireAuth,
+				true,
+			),
+		});
+	}
 
 	if (response.status === 204) {
 		return undefined as T;
