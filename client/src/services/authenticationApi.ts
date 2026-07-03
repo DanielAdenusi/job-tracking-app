@@ -4,7 +4,6 @@ import {
 	sendPasswordResetEmail,
 	signInWithEmailAndPassword,
 	signInWithPopup,
-	signInWithRedirect,
 	signOut,
 	getRedirectResult,
 	onAuthStateChanged,
@@ -14,29 +13,9 @@ import {
 
 import { auth, googleProvider } from "../lib/firebase";
 
-function isPopupBlockedError(error: unknown) {
-	return (
-		error instanceof Error &&
-		"code" in error &&
-		[
-			"auth/popup-blocked",
-			"auth/operation-not-supported-in-this-environment",
-		].includes(String(error.code))
-	);
-}
-
 export async function loginWithGoogle() {
-	try {
-		const result = await signInWithPopup(auth, googleProvider);
-		return result.user;
-	} catch (error) {
-		if (isPopupBlockedError(error)) {
-			await signInWithRedirect(auth, googleProvider);
-			return null;
-		}
-
-		throw error;
-	}
+	const result = await signInWithPopup(auth, googleProvider);
+	return result.user;
 }
 
 export async function completeGoogleRedirectLogin() {
@@ -50,17 +29,8 @@ export async function loginWithEmail(email: string, password: string) {
 }
 
 export async function signUpWithGoogle() {
-	try {
-		const result = await signInWithPopup(auth, googleProvider);
-		return result.user;
-	} catch (error) {
-		if (isPopupBlockedError(error)) {
-			await signInWithRedirect(auth, googleProvider);
-			return null;
-		}
-
-		throw error;
-	}
+	const result = await signInWithPopup(auth, googleProvider);
+	return result.user;
 }
 
 export async function signUpWithEmail(email: string, password: string) {
