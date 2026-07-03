@@ -25,6 +25,7 @@ function decodeTokenPayload(token) {
 
 export async function requireAuth(req, res, next) {
 	let tokenDetails = null;
+	let decodedToken = null;
 
 	try {
 		const authHeader = req.headers.authorization;
@@ -38,8 +39,25 @@ export async function requireAuth(req, res, next) {
 		const token = authHeader.split("Bearer ")[1];
 		tokenDetails = decodeTokenPayload(token);
 
-		const decodedToken = await adminAuth.verifyIdToken(token);
+		decodedToken = await adminAuth.verifyIdToken(token);
+	} catch (error) {
+		const authError = {
+			code: error?.code,
+			message: error?.message,
+			configuredProjectId: process.env.FIREBASE_PROJECT_ID,
+			tokenProjectId: tokenDetails?.aud,
+			tokenIssuer: tokenDetails?.iss,
+		};
 
+		console.error("Auth error:", authError);
+
+		return res.status(401).json({
+			message: "Invalid or expired token",
+			authError,
+		});
+	}
+
+	try {
 		const firebaseUid = decodedToken.uid;
 		const email = decodedToken.email || "";
 		const displayName = decodedToken.name || "";
@@ -61,19 +79,18 @@ export async function requireAuth(req, res, next) {
 
 		next();
 	} catch (error) {
-		const authError = {
+		const databaseError = {
 			code: error?.code,
 			message: error?.message,
-			configuredProjectId: process.env.FIREBASE_PROJECT_ID,
-			tokenProjectId: tokenDetails?.aud,
-			tokenIssuer: tokenDetails?.iss,
+			address: error?.address,
+			port: error?.port,
 		};
 
-		console.error("Auth error:", authError);
+		console.error("User auth database error:", databaseError);
 
-		return res.status(401).json({
-			message: "Invalid or expired token",
-			authError,
+		return res.status(503).json({
+			message: "Database connection failed while loading your account.",
+			databaseError,
 		});
 	}
 }
