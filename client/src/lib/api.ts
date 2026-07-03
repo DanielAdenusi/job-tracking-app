@@ -67,8 +67,27 @@ export async function apiFetch<T>(
 	const data = await response.json().catch(() => null);
 
 	if (!response.ok) {
-		const message =
-			data?.message || `Request failed with status ${response.status}`;
+		const authDetails = data?.authError
+			? [
+					data.authError.code,
+					data.authError.message,
+					data.authError.tokenProjectId
+						? `token project: ${data.authError.tokenProjectId}`
+						: null,
+					data.authError.configuredProjectId
+						? `server project: ${data.authError.configuredProjectId}`
+						: null,
+				]
+					.filter(Boolean)
+					.join(" | ")
+			: null;
+
+		const message = [
+			data?.message || `Request failed with status ${response.status}`,
+			authDetails,
+		]
+			.filter(Boolean)
+			.join(": ");
 
 		throw new Error(message);
 	}
