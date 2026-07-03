@@ -1,0 +1,25 @@
+{
+	"name": "job-tracker",
+	"version": "1.0.0",
+	"private": true,
+	"main": "index.js",
+	"scripts": {
+		"client": "npm run dev --prefix client",
+		"server": "npm run dev --prefix server",
+		"dev": "concurrently \"npm run server\" \"npm run client\""
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/DanielAdenusi/job-tracking-app.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/DanielAdenusi/job-tracking-app/issues"
+	},
+	"homepage": "https://github.com/DanielAdenusi/job-tracking-app#readme",
+	"devDependencies": {
+		"concurrently": "^10.0.3"
+	}
+}
