@@ -18,7 +18,7 @@ import {
 	getPendingCreateCount,
 	isLocalApplicationId,
 } from "../services/applicationOfflineStore";
-import { EmptyState, Spinner } from "../components/ui/Surface";
+import { EmptyState } from "../components/ui/Surface";
 import { SearchInput, Select } from "../components/ui/FormControls";
 import { ButtonLink } from "../components/ui/Button";
 
@@ -70,6 +70,78 @@ function formatCompactDate(value: string | null) {
 
 function getCardDate(application: Application) {
 	return formatCompactDate(application.followUpAt || application.deadlineAt);
+}
+
+function KanbanSkeleton() {
+	return (
+		<section
+			className="flex h-full min-h-0 flex-col gap-6"
+			aria-busy="true"
+		>
+			<div className="sr-only">Loading Kanban board...</div>
+
+			<div className="shrink-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/40">
+				<div className="grid gap-4 xl:grid-cols-[minmax(240px,1fr)_220px_200px_auto] xl:items-center">
+					<div className="h-10 animate-pulse rounded-lg bg-slate-100" />
+					<div className="h-10 animate-pulse rounded-lg bg-slate-100" />
+					<div className="h-10 animate-pulse rounded-lg bg-slate-100" />
+					<div className="h-10 w-36 animate-pulse rounded-lg bg-slate-200" />
+				</div>
+			</div>
+
+			<div className="-mx-2 min-h-0 flex-1 overflow-hidden px-2 pb-3">
+				<div className="grid h-full min-h-0 w-max auto-cols-73.5 grid-flow-col grid-rows-1 gap-4 pt-2">
+					{APPLICATION_STATUSES.map((status, columnIndex) => (
+						<section
+							key={status}
+							className={[
+								"flex h-full min-h-0 w-73.5 shrink-0 flex-col rounded-xl border border-slate-200 border-t-4 bg-white p-4",
+								columnIndex % 4 === 0
+									? "border-t-sky-400"
+									: columnIndex % 4 === 1
+										? "border-t-indigo-400"
+										: columnIndex % 4 === 2
+											? "border-t-amber-400"
+											: "border-t-emerald-400",
+							].join(" ")}
+						>
+							<div className="mb-4 flex items-start justify-between gap-3">
+								<div className="grid gap-2">
+									<div className="h-5 w-28 animate-pulse rounded bg-slate-200" />
+									<div className="h-3 w-44 animate-pulse rounded bg-slate-100" />
+									<div className="h-3 w-32 animate-pulse rounded bg-slate-100" />
+								</div>
+								<div className="h-7 w-10 animate-pulse rounded-full bg-slate-100" />
+							</div>
+
+							<div className="grid content-start gap-3 overflow-hidden p-1">
+								{Array.from({
+									length: columnIndex % 3 === 0 ? 2 : 3,
+								}).map((_, cardIndex) => (
+									<div
+										key={cardIndex}
+										className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-blue-100/50"
+									>
+										<div className="flex items-center justify-between gap-3">
+											<div className="h-6 w-20 animate-pulse rounded-lg bg-slate-100" />
+											<div className="h-5 w-5 animate-pulse rounded bg-slate-100" />
+										</div>
+										<div className="mt-4 h-4 w-44 animate-pulse rounded bg-slate-200" />
+										<div className="mt-3 h-3 w-32 animate-pulse rounded bg-slate-100" />
+										<div className="my-4 h-px bg-slate-100" />
+										<div className="flex items-center justify-between gap-3">
+											<div className="h-4 w-24 animate-pulse rounded bg-slate-100" />
+											<div className="h-4 w-14 animate-pulse rounded bg-slate-100" />
+										</div>
+									</div>
+								))}
+							</div>
+						</section>
+					))}
+				</div>
+			</div>
+		</section>
+	);
 }
 
 export function KanbanPage() {
@@ -256,11 +328,7 @@ export function KanbanPage() {
 	}
 
 	if (isLoading) {
-		return (
-			<section className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm shadow-slate-200/40">
-				<Spinner label="Loading Kanban board..." />
-			</section>
-		);
+		return <KanbanSkeleton />;
 	}
 
 	return (
