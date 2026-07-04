@@ -1,18 +1,28 @@
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import {
 	ArrowLeft,
+	Briefcase,
 	BriefcaseBusiness,
 	Building2,
+	CalendarCheck,
+	CalendarClock,
 	CalendarDays,
+	Check,
 	ExternalLink,
 	FileText,
+	Flag,
+	Laptop,
+	Lock,
 	MapPin,
 	MessageSquare,
 	Pencil,
+	PoundSterling,
 	Trash2,
 	WifiOff,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
 	applicationStatusBadgeClasses,
 	applicationStatusLabels,
@@ -24,7 +34,7 @@ import {
 	updateApplicationStatus,
 } from "../services/applicationsApi";
 import { isLocalApplicationId } from "../services/applicationOfflineStore";
-import type { ApplicationStatus } from "../constants/applicationOptions";
+import { type ApplicationStatus } from "../constants/applicationOptions";
 import type { Application } from "../types/application";
 import { ConfirmationModal } from "../components/ConfirmationModal";
 import { Button, ButtonLink } from "../components/ui/Button";
@@ -40,6 +50,76 @@ const STATUS_ADVANCE_ORDER: ApplicationStatus[] = [
 	"interviewing",
 	"offer",
 ];
+
+const COMPANY_ACCENTS = [
+	{ bg: "bg-blue-50", text: "text-blue-700" },
+	{ bg: "bg-violet-50", text: "text-violet-700" },
+	{ bg: "bg-amber-50", text: "text-amber-700" },
+	{ bg: "bg-emerald-50", text: "text-emerald-700" },
+	{ bg: "bg-rose-50", text: "text-rose-700" },
+	{ bg: "bg-cyan-50", text: "text-cyan-700" },
+] as const;
+
+function getCompanyAccent(name: string) {
+	const sum = name
+		.split("")
+		.reduce((total, char) => total + char.charCodeAt(0), 0);
+
+	return COMPANY_ACCENTS[sum % COMPANY_ACCENTS.length];
+}
+
+const PRIORITY_BADGE_CLASSES: Record<string, string> = {
+	low: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+	medium: "bg-amber-50 text-amber-700 ring-amber-200",
+	high: "bg-rose-50 text-rose-700 ring-rose-200",
+};
+
+function getPriorityBadgeClasses(priority: string | null) {
+	if (!priority) return "bg-slate-100 text-slate-600 ring-slate-200";
+
+	return (
+		PRIORITY_BADGE_CLASSES[priority] ??
+		"bg-slate-100 text-slate-600 ring-slate-200"
+	);
+}
+
+// Gives each Key Details field its own icon-chip colour, the same visual
+// language as the dashboard's Overview metrics, so this page reads as part
+// of the same product rather than a plain fact sheet.
+const FIELD_ACCENT_CLASSES = {
+	violet: "bg-violet-50 text-violet-600",
+	cyan: "bg-cyan-50 text-cyan-600",
+	blue: "bg-blue-50 text-blue-600",
+	emerald: "bg-emerald-50 text-emerald-600",
+	amber: "bg-amber-50 text-amber-600",
+	teal: "bg-teal-50 text-teal-600",
+} as const;
+
+type FieldAccent = keyof typeof FIELD_ACCENT_CLASSES;
+
+// Mirrors the "Stage X of 5 / Y% completed" convention used on the
+// Dashboard's recent-applications list. Wishlist sits before the active
+// pipeline, so it's shown as a floor value rather than a computed 0%.
+function getPipelineProgress(status: ApplicationStatus) {
+	const activeStages = STATUS_ADVANCE_ORDER.slice(1);
+	const totalStages = activeStages.length;
+
+	if (status === "wishlist") {
+		return { stageNumber: 1, totalStages, percent: 10 };
+	}
+
+	const position = activeStages.indexOf(status);
+
+	if (position === -1) {
+		return null;
+	}
+
+	return {
+		stageNumber: position + 1,
+		totalStages,
+		percent: Math.round((position / (totalStages - 1)) * 100),
+	};
+}
 
 function formatOption(value: string | null) {
 	if (!value) return "Not specified";
@@ -95,8 +175,24 @@ function getNextStatus(status: ApplicationStatus) {
 }
 
 function getTimelineTitle(status: ApplicationStatus, index: number) {
-	if (index === 0 && status === "wishlist") {
-		return "Wishlisted";
+	if (index === 0) {
+		if (status === "wishlist") {
+			return "Wishlisted";
+		} else if (status === "saved") {
+			return "Saved";
+		} else if (status === "applied") {
+			return "Applied";
+		} else if (status === "assessment") {
+			return "Assessment";
+		} else if (status === "interviewing") {
+			return "Interviewing";
+		} else if (status === "offer") {
+			return "Offered";
+		} else if (status === "rejected") {
+			return "Rejected";
+		} else if (status === "withdrawn") {
+			return "Withdrawn";
+		}
 	}
 
 	if (status === "offer") {
@@ -117,6 +213,126 @@ function getTimelineTransitions(application: Application) {
 			transitionedAt: application.updatedAt || application.createdAt,
 		},
 	];
+}
+
+function DetailField({
+	icon: Icon,
+	label,
+	children,
+	accent = "teal",
+	className = "",
+}: {
+	icon: LucideIcon;
+	label: string;
+	children: ReactNode;
+	accent?: FieldAccent;
+	className?: string;
+}) {
+	return (
+		<div
+			className={`application-detail-field group rounded-lg border border-slate-100 bg-slate-50/70 p-4 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-200 hover:bg-white hover:shadow-md hover:shadow-slate-200/60 ${className}`}
+		>
+			<dt className="flex items-center gap-2 text-[0.7rem] font-bold uppercase tracking-widest text-slate-400">
+				<span
+					className={`application-detail-icon grid h-6 w-6 shrink-0 place-items-center rounded-md transition-transform duration-150 group-hover:scale-105 ${FIELD_ACCENT_CLASSES[accent]}`}
+				>
+					<Icon size={13} strokeWidth={2.5} />
+				</span>
+				{label}
+			</dt>
+			<dd className="mt-2.5 text-sm font-bold text-slate-950">
+				{children}
+			</dd>
+		</div>
+	);
+}
+
+function SkeletonBlock({ className }: { className: string }) {
+	return (
+		<div
+			className={`animate-pulse rounded-lg bg-slate-200/80 ${className}`}
+		/>
+	);
+}
+
+function ApplicationDetailsSkeleton() {
+	return (
+		<section
+			className="grid min-w-0 max-w-full gap-5 overflow-x-hidden"
+			aria-label="Loading application details"
+		>
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex items-center gap-2">
+					<SkeletonBlock className="h-8 w-8" />
+					<SkeletonBlock className="h-4 w-36" />
+				</div>
+				<SkeletonBlock className="h-4 w-28" />
+			</div>
+
+			<article className="rounded-xl border border-slate-200 bg-white px-5 py-6 shadow-sm shadow-slate-200/50 sm:px-8 sm:py-9">
+				<div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+					<div className="flex min-w-0 items-start gap-4 sm:items-center">
+						<SkeletonBlock className="h-14 w-14 shrink-0 rounded-2xl" />
+						<div className="min-w-0">
+							<div className="flex flex-wrap items-center gap-3">
+								<SkeletonBlock className="h-8 w-56 max-w-full" />
+								<SkeletonBlock className="h-7 w-20" />
+							</div>
+							<div className="mt-3 flex flex-col gap-3 sm:flex-row">
+								<SkeletonBlock className="h-5 w-44" />
+								<SkeletonBlock className="h-5 w-28" />
+							</div>
+						</div>
+					</div>
+
+					<div className="grid gap-3 sm:grid-cols-3 lg:flex">
+						<SkeletonBlock className="h-10 w-full sm:w-32" />
+						<SkeletonBlock className="h-10 w-full sm:w-32" />
+						<SkeletonBlock className="h-10 w-full sm:w-10" />
+					</div>
+				</div>
+
+				<SkeletonBlock className="mt-7 h-1.5 w-full" />
+			</article>
+
+			<div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+				<article className="rounded-xl border border-slate-200 bg-white px-5 py-6 shadow-sm shadow-slate-200/50 sm:px-6 sm:py-7">
+					<SkeletonBlock className="h-6 w-36" />
+					<div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+						{Array.from({ length: 6 }).map((_, index) => (
+							<div
+								key={index}
+								className="rounded-lg border border-slate-100 bg-slate-50 p-4"
+							>
+								<SkeletonBlock className="h-3 w-20" />
+								<SkeletonBlock className="mt-3 h-4 w-24" />
+							</div>
+						))}
+					</div>
+				</article>
+
+				<article className="rounded-xl border border-slate-200 bg-white px-5 py-6 shadow-sm shadow-slate-200/50 sm:px-6 sm:py-7">
+					<SkeletonBlock className="h-6 w-40" />
+					<div className="mt-7 space-y-5">
+						{Array.from({ length: 2 }).map((_, index) => (
+							<div key={index} className="flex gap-3">
+								<SkeletonBlock className="mt-1 h-3 w-3 rounded-full" />
+								<div className="flex-1">
+									<SkeletonBlock className="h-4 w-36" />
+									<SkeletonBlock className="mt-2 h-3 w-24" />
+								</div>
+							</div>
+						))}
+					</div>
+				</article>
+
+				<article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/50 sm:p-6 xl:col-span-2">
+					<SkeletonBlock className="h-6 w-32" />
+					<SkeletonBlock className="mt-5 h-40 w-full" />
+				</article>
+			</div>
+		</section>
+	);
 }
 
 export function ApplicationDetailsPage() {
@@ -240,11 +456,7 @@ export function ApplicationDetailsPage() {
 	}
 
 	if (isLoading) {
-		return (
-			<section className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm shadow-slate-200/40">
-				<h3 className="font-extrabold">Loading application...</h3>
-			</section>
-		);
+		return <ApplicationDetailsSkeleton />;
 	}
 
 	if (!application) {
@@ -274,9 +486,18 @@ export function ApplicationDetailsPage() {
 	const nextStatus = getNextStatus(application.status);
 	const timelineTransitions = getTimelineTransitions(application);
 	const isLocalApplication = isLocalApplicationId(application.id);
+	const companyAccent = getCompanyAccent(application.company);
+	const companyInitial =
+		application.company.trim().charAt(0).toUpperCase() || "?";
+	const pipelineProgress = getPipelineProgress(application.status);
+	const currentStageIndex = STATUS_ADVANCE_ORDER.indexOf(application.status);
+	const upcomingStatuses =
+		currentStageIndex === -1
+			? []
+			: STATUS_ADVANCE_ORDER.slice(currentStageIndex + 1);
 
 	return (
-		<section className="grid min-w-0 max-w-full gap-6 overflow-x-hidden">
+		<section className="application-details-page grid min-w-0 max-w-full gap-6 overflow-x-hidden">
 			{isLocalApplication && (
 				<div className="rounded-xl border border-amber-200 bg-amber-50 p-5 shadow-sm shadow-amber-100/50">
 					<div className="flex items-start gap-3">
@@ -298,78 +519,101 @@ export function ApplicationDetailsPage() {
 				</div>
 			)}
 
-			<div className="flex flex-wrap items-center justify-between gap-3">
-				<Link
-					to="/applications"
-					className="inline-flex h-8 items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-slate-950"
-				>
-					<span className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/40">
-						<ArrowLeft size={16} strokeWidth={2.5} />
-					</span>
-					Back to Applications
-				</Link>
-
-				<span className="inline-flex items-center gap-2 text-sm font-bold text-slate-400">
-					<CalendarDays size={16} strokeWidth={2.4} />
-					Added {addedDate}
-				</span>
-			</div>
-
 			{error && (
 				<div className="rounded-xl border border-red-200 bg-red-50 p-4">
 					<p className="font-bold text-red-900">{error}</p>
 				</div>
 			)}
 
-			<article className="w-full max-w-full rounded-xl border border-slate-200 bg-white px-8 py-9 shadow-sm shadow-slate-200/50">
-				<div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-					<div className="min-w-0">
-						<div className="flex flex-wrap items-center gap-3">
-							<h2 className="text-2xl font-bold tracking-tight text-slate-950 md:text-[30px] md:leading-9">
-								{application.role}
-							</h2>
-							<span
-								className={[
-									"inline-flex rounded-md px-3 py-1 text-xs font-bold ring-1",
-									applicationStatusBadgeClasses[
-										application.status
-									],
-								].join(" ")}
-							>
-								{applicationStatusLabels[application.status]}
-							</span>
-						</div>
+			<article className="application-detail-panel relative w-full max-w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/50">
+				<span
+					className={`absolute inset-x-0 top-0 h-1.5 ${applicationStatusBadgeClasses[application.status]}`}
+					aria-hidden="true"
+				/>
 
-						<div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-base font-semibold text-slate-500">
-							<span className="inline-flex items-center gap-2">
-								<Building2
-									size={19}
-									strokeWidth={2.4}
-									className="text-blue-600"
-								/>
-								{application.company}
-							</span>
+				<div className="flex flex-row gap-3 border-b border-slate-100 px-5 pb-4 pt-6 justify-between sm:px-8">
+					<ButtonLink
+						to="/applications"
+						icon={<ArrowLeft size={16} strokeWidth={2.5} />}
+						aria-label="Back to applications list"
+					>
+						<span className="max-sm:hidden">
+							Back to applications
+						</span>
+					</ButtonLink>
 
-							{application.location && (
-								<span className="inline-flex items-center gap-2">
-									<MapPin
-										size={18}
-										strokeWidth={2.4}
-										className="text-slate-400"
-									/>
-									{application.location}
+					<span className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-400 sm:justify-end">
+						<CalendarDays size={16} strokeWidth={2.4} />
+						Added {addedDate}
+					</span>
+				</div>
+
+				<div className="flex flex-col gap-5 px-5 py-6 sm:px-8 sm:py-7 lg:flex-row lg:items-center lg:justify-between">
+					<div className="flex min-w-0 items-start gap-4 sm:items-center">
+						<span
+							className={`application-company-avatar grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-lg font-extrabold shadow-sm ring-2 ring-slate-50 ring-offset-1 ring-offset-slate-200 ${companyAccent.bg} ${companyAccent.text}`}
+							aria-hidden="true"
+						>
+							{companyInitial}
+						</span>
+
+						<div className="min-w-0">
+							<div className="flex flex-wrap items-center gap-3">
+								<h2 className="min-w-0 text-2xl font-bold tracking-tight text-slate-950 md:text-[30px] md:leading-9">
+									{application.role}
+								</h2>
+								<span
+									className={[
+										"inline-flex rounded-md px-3 py-1 text-xs font-bold ring-1",
+										applicationStatusBadgeClasses[
+											application.status
+										],
+									].join(" ")}
+								>
+									{
+										applicationStatusLabels[
+											application.status
+										]
+									}
 								</span>
-							)}
+							</div>
+
+							<div className="mt-2 grid gap-1.5 text-base font-semibold text-slate-500 sm:flex sm:flex-wrap sm:items-center sm:gap-x-5">
+								<span className="inline-flex min-w-0 items-center gap-1.5">
+									<Building2
+										size={17}
+										strokeWidth={2.4}
+										className="shrink-0 text-slate-400"
+									/>
+									<span className="truncate">
+										{application.company}
+									</span>
+								</span>
+
+								{application.location && (
+									<span className="inline-flex min-w-0 items-center gap-1.5">
+										<MapPin
+											size={17}
+											strokeWidth={2.4}
+											className="shrink-0 text-slate-400"
+										/>
+										<span className="truncate">
+											{application.location}
+										</span>
+									</span>
+								)}
+							</div>
 						</div>
 					</div>
 
-					<div className="flex flex-wrap items-center gap-3">
+					<div className="grid gap-3 sm:grid-cols-[repeat(2,minmax(0,1fr))_auto] lg:flex lg:flex-wrap lg:items-center">
 						{application.jobUrl && (
 							<ButtonLink
 								to={application.jobUrl}
 								target="_blank"
 								rel="noreferrer"
 								variant="secondary"
+								className="w-full sm:w-auto"
 							>
 								<ExternalLink size={16} strokeWidth={2.5} />
 								Open Post
@@ -380,6 +624,7 @@ export function ApplicationDetailsPage() {
 							to={`/applications/${application.id}/edit`}
 							variant="primary"
 							icon={<Pencil size={16} strokeWidth={2.5} />}
+							className="w-full sm:w-auto"
 						>
 							Edit Record
 						</ButtonLink>
@@ -388,90 +633,168 @@ export function ApplicationDetailsPage() {
 							onClick={() => setIsDeleteModalOpen(true)}
 							label={`Delete ${application.role}`}
 							tone="danger"
+							className="hidden sm:grid"
 						>
 							<Trash2 size={16} strokeWidth={2.5} />
 						</IconButton>
+						<Button
+							onClick={() => setIsDeleteModalOpen(true)}
+							variant="danger"
+							className="w-full sm:hidden"
+						>
+							<Trash2 size={16} strokeWidth={2.5} />
+							Delete
+						</Button>
 					</div>
 				</div>
+
+				{pipelineProgress && (
+					<div className="px-5 pb-6 sm:px-8 sm:pb-7">
+						<div className="application-progress-track h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+							<div
+								className="h-full rounded-full bg-lime-500 transition-[width] duration-500"
+								style={{
+									width: `${pipelineProgress.percent}%`,
+								}}
+							/>
+						</div>
+						<div className="mt-2 flex items-center justify-between text-xs font-semibold text-slate-400">
+							<span>
+								Stage {pipelineProgress.stageNumber} of{" "}
+								{pipelineProgress.totalStages}
+							</span>
+							<span>{pipelineProgress.percent}% completed</span>
+						</div>
+					</div>
+				)}
 			</article>
 
-			<div className="grid min-w-0 max-w-full items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-				<article className="h-full min-w-0 max-w-full rounded-xl border border-slate-200 bg-white px-6 py-7 shadow-sm shadow-slate-200/50">
-					<h3 className="flex items-center gap-2 text-lg font-bold text-slate-950">
-						<BriefcaseBusiness
-							size={18}
-							strokeWidth={2.4}
-							className="text-slate-400"
-						/>
+			<div className="grid min-w-0 max-w-full items-start gap-5 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+				<article className="application-detail-panel min-w-0 max-w-full rounded-xl border border-slate-200 bg-white px-5 py-6 shadow-sm shadow-slate-200/50 transition-shadow duration-200 hover:shadow-md hover:shadow-slate-200/60 sm:px-6 sm:py-7 xl:row-start-1 ">
+					<h3 className="flex items-center gap-2.5 text-lg font-bold text-slate-950">
+						<span className="application-detail-icon grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-50 text-teal-600">
+							<BriefcaseBusiness size={16} strokeWidth={2.4} />
+						</span>
 						Key Details
 					</h3>
 
-					<dl className="mt-7 grid gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
-						<div>
-							<dt className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
-								Priority
-							</dt>
-							<dd className="mt-2">
-								<span className="rounded-md bg-violet-50 px-4 py-1 text-xs font-bold text-violet-700 ring-1 ring-violet-200">
-									{formatOption(application.priority)}
-								</span>
-							</dd>
-						</div>
+					<dl className="mt-6 grid grid-cols-2 gap-3 sm:mt-7 sm:grid-cols-3 sm:gap-4">
+						<DetailField
+							icon={Flag}
+							label="Priority"
+							accent="violet"
+						>
+							<span
+								className={[
+									"application-priority-badge rounded-md px-3 py-1 text-xs font-bold ring-1",
+									getPriorityBadgeClasses(
+										application.priority,
+									),
+								].join(" ")}
+							>
+								{formatOption(application.priority)}
+							</span>
+						</DetailField>
 
-						<div>
-							<dt className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
-								Work Mode
-							</dt>
-							<dd className="mt-2 text-sm font-bold text-slate-950">
-								{formatOption(application.workMode)}
-							</dd>
-						</div>
+						<DetailField
+							icon={Laptop}
+							label="Work Mode"
+							accent="cyan"
+						>
+							{formatOption(application.workMode)}
+						</DetailField>
 
-						<div>
-							<dt className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
-								Employment
-							</dt>
-							<dd className="mt-2 text-sm font-bold text-slate-950">
-								{formatOption(application.employmentType)}
-							</dd>
-						</div>
+						<DetailField
+							icon={Briefcase}
+							label="Employment"
+							accent="blue"
+						>
+							{formatOption(application.employmentType)}
+						</DetailField>
 
-						<div>
-							<dt className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
-								Applied Date
-							</dt>
-							<dd className="mt-2 text-sm font-bold text-slate-950">
-								{formatDate(application.appliedAt)}
-							</dd>
-						</div>
+						<DetailField
+							icon={CalendarCheck}
+							label="Applied Date"
+							accent="emerald"
+						>
+							{formatDate(application.appliedAt)}
+						</DetailField>
 
-						<div>
-							<dt className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
-								Follow-up Date
-							</dt>
-							<dd className="mt-2 text-sm font-bold text-slate-950">
-								{formatDate(application.followUpAt)}
-							</dd>
-						</div>
+						<DetailField
+							icon={CalendarClock}
+							label="Follow-up Date"
+							accent="amber"
+						>
+							{formatDate(application.followUpAt)}
+						</DetailField>
 
-						<div>
-							<dt className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
-								Salary Range
-							</dt>
-							<dd className="mt-2 text-sm font-bold text-slate-950">
-								{application.salary || "-"}
-							</dd>
-						</div>
+						<DetailField
+							icon={PoundSterling}
+							label="Salary Range"
+							accent="teal"
+							className="col-span-2 sm:col-span-1"
+						>
+							{application.salary || "Not specified"}
+						</DetailField>
 					</dl>
 				</article>
 
-				<article className="flex h-full min-w-0 max-w-full flex-col rounded-xl border border-slate-200 bg-white px-6 py-7 shadow-sm shadow-slate-200/50">
-					<h3 className="flex items-center gap-2 text-lg font-bold text-slate-950">
-						<MessageSquare
-							size={18}
-							strokeWidth={2.4}
-							className="text-slate-400"
-						/>
+				<article className="application-detail-panel grid min-w-0 max-w-full gap-5 overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/50 transition-shadow duration-200 hover:shadow-md hover:shadow-slate-200/60 sm:p-6 xl:row-start-2">
+					<div className="flex flex-wrap items-center justify-between gap-2">
+						<h3 className="flex items-center gap-2.5 text-lg font-bold text-slate-950">
+							<span className="application-detail-icon grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-600">
+								<FileText size={16} strokeWidth={2.4} />
+							</span>
+							Private Notes
+						</h3>
+						<span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+							<Lock size={13} strokeWidth={2.5} />
+							Only visible to you
+						</span>
+					</div>
+
+					<Textarea
+						value={notesDraft}
+						onChange={(event) => setNotesDraft(event.target.value)}
+						placeholder="Add notes about the role, required skills, or interview prep..."
+						className="min-h-56"
+					/>
+
+					<div className="flex min-w-0 flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+						<p className="text-xs font-semibold text-slate-400">
+							{notesDraft.length.toLocaleString()} characters
+						</p>
+
+						<div className="flex min-w-0 flex-col-reverse gap-3 sm:flex-row">
+							{notesHaveChanges && (
+								<Button
+									onClick={() =>
+										setIsDiscardNotesModalOpen(true)
+									}
+									disabled={isSavingNotes}
+									variant="secondary"
+								>
+									Discard Changes
+								</Button>
+							)}
+
+							<Button
+								onClick={handleSaveNotes}
+								disabled={isSavingNotes || !notesHaveChanges}
+								variant="primary"
+								isLoading={isSavingNotes}
+							>
+								{isSavingNotes ? "Saving..." : "Save Notes"}
+							</Button>
+						</div>
+					</div>
+				</article>
+
+				<article className="application-detail-panel flex min-w-0 max-w-full flex-col rounded-xl border border-slate-200 bg-white px-5 py-6 shadow-sm shadow-slate-200/50 transition-shadow duration-200 hover:shadow-md hover:shadow-slate-200/60 sm:px-6 sm:py-7 row-start-2 xl:row-span-2">
+					<h3 className="flex items-center gap-2.5 text-lg font-bold text-slate-950">
+						<span className="application-detail-icon grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-violet-50 text-violet-600">
+							<MessageSquare size={16} strokeWidth={2.4} />
+						</span>
 						Activity Timeline
 					</h3>
 
@@ -486,6 +809,11 @@ export function ApplicationDetailsPage() {
 								transition.transitionedAt,
 							);
 
+							const isPastStep = !isCurrentStatus;
+							const currentTimelineStatusClass = isCurrentStatus
+								? `application-timeline-current-${status}`
+								: "";
+
 							return (
 								<div
 									key={`${status}-${index}`}
@@ -493,14 +821,33 @@ export function ApplicationDetailsPage() {
 								>
 									<span
 										className={[
-											"absolute left-0 top-1.5 h-2.5 w-2.5 rounded-full border-2 bg-white",
+											`absolute left-0 top-0.5 grid h-4 w-4 place-items-center rounded-full border z-10`,
 											isCurrentStatus
-												? "border-blue-600"
-												: "border-slate-300",
+												? `application-timeline-current-marker border-blue-500 bg-white ring-2 ring-blue-50 ${currentTimelineStatusClass}`
+												: isPastStep
+													? `application-timeline-past-marker ${applicationStatusBadgeClasses[
+															status
+														].replace(
+															/\bbg-([a-z]+)-100\b/g,
+															"bg-$1-900",
+														)}`
+													: "border-slate-300 bg-white",
 										].join(" ")}
-									/>
+									>
+										{isPastStep && (
+											<Check
+												size={7}
+												strokeWidth={4}
+												// className="text-white"
+											/>
+										)}
+									</span>
 									{!isLastItem && (
-										<span className="absolute left-1 top-5 h-[calc(100%+1.5rem)] w-px bg-slate-200" />
+										<span
+											className={
+												"absolute left-[7.5px] top-4 h-[calc(100%+1rem)] w-[1.5px] bg-slate-200"
+											}
+										/>
 									)}
 									<div className="flex flex-wrap items-center gap-2">
 										<p
@@ -548,45 +895,25 @@ export function ApplicationDetailsPage() {
 							);
 						})}
 					</div>
-				</article>
 
-				<article className="grid min-w-0 max-w-full gap-5 overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/50 xl:col-span-2">
-					<h3 className="flex items-center gap-2 text-lg font-bold text-slate-950">
-						<FileText
-							size={18}
-							strokeWidth={2.4}
-							className="text-slate-400"
-						/>
-						Private Notes
-					</h3>
-
-					<Textarea
-						value={notesDraft}
-						onChange={(event) => setNotesDraft(event.target.value)}
-						placeholder="Add notes about the role, required skills, or interview prep..."
-						className="min-h-56"
-					/>
-
-					<div className="flex min-w-0 flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-						{notesHaveChanges && (
-							<Button
-								onClick={() => setIsDiscardNotesModalOpen(true)}
-								disabled={isSavingNotes}
-								variant="secondary"
-							>
-								Discard Changes
-							</Button>
-						)}
-
-						<Button
-							onClick={handleSaveNotes}
-							disabled={isSavingNotes || !notesHaveChanges}
-							variant="primary"
-							isLoading={isSavingNotes}
-						>
-							{isSavingNotes ? "Saving..." : "Save Notes"}
-						</Button>
-					</div>
+					{upcomingStatuses.length > 0 && (
+						<div className="mt-6 space-y-4 border-t border-dashed border-slate-200 pt-6">
+							<p className="text-[0.7rem] font-bold uppercase tracking-widest text-slate-400">
+								Up next in the pipeline
+							</p>
+							{upcomingStatuses.map((status) => (
+								<div
+									key={status}
+									className="flex items-center gap-3"
+								>
+									<span className="h-2.5 w-2.5 shrink-0 rounded-full border-2 border-dashed border-slate-300" />
+									<p className="text-sm font-semibold text-slate-400">
+										{applicationStatusLabels[status]}
+									</p>
+								</div>
+							))}
+						</div>
+					)}
 				</article>
 			</div>
 

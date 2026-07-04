@@ -819,7 +819,7 @@ export function ApplicationsPage() {
 										</div>
 									</div>
 
-									<div className="flex min-w-0 items-center gap-3 xl:justify-end">
+									<div className="grid grid-cols-[1fr_auto] min-w-0 items-center gap-3 xl:justify-end max-md:flex max-md:flex-col">
 										<Select
 											value={application.status}
 											disabled={
@@ -833,7 +833,7 @@ export function ApplicationsPage() {
 												)
 											}
 											aria-label={`Update status for ${application.role}`}
-											className="h-10 w-40 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60 max-xl:flex-1"
+											className="h-10 w-40 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60 flex-1"
 										>
 											{APPLICATION_STATUSES.map(
 												(status) => (
@@ -850,60 +850,64 @@ export function ApplicationsPage() {
 												),
 											)}
 										</Select>
-										<Link
-											to={`/applications/${application.id}`}
-											className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm"
-										>
-											Details
-										</Link>
 
-										<span
-											aria-hidden="true"
-											className="hidden h-6 w-px bg-slate-200 xl:inline-block"
-										/>
-
-										{application.jobUrl && (
-											<IconButtonLink
-												to={application.jobUrl}
-												tone="link"
-												target="_blank"
-												rel="noreferrer"
-												aria-label={`Open job post for ${application.role}`}
-												label={`Open job post for ${application.role}`}
+										<div className="w-full flex flex-1 items-center gap-2">
+											<Link
+												to={`/applications/${application.id}`}
+												className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm flex-1"
 											>
-												<ExternalLink
+												Details
+											</Link>
+
+											<span
+												aria-hidden="true"
+												className="hidden h-6 w-px bg-slate-200 xl:inline-block"
+											/>
+
+											{application.jobUrl && (
+												<IconButtonLink
+													to={application.jobUrl}
+													tone="link"
+													target="_blank"
+													rel="noreferrer"
+													aria-label={`Open job post for ${application.role}`}
+													label={`Open job post for ${application.role}`}
+												>
+													<ExternalLink
+														size={17}
+														strokeWidth={2.25}
+													/>
+												</IconButtonLink>
+											)}
+
+											<IconButtonLink
+												to={`/applications/${application.id}/edit`}
+												aria-label={`Edit ${application.role}`}
+												label={`Edit ${application.role}`}
+											>
+												<Pencil
 													size={17}
 													strokeWidth={2.25}
 												/>
 											</IconButtonLink>
-										)}
 
-										<IconButtonLink
-											to={`/applications/${application.id}/edit`}
-											aria-label={`Edit ${application.role}`}
-											label={`Edit ${application.role}`}
-										>
-											<Pencil
-												size={17}
-												strokeWidth={2.25}
-											/>
-										</IconButtonLink>
-
-										<IconButton
-											disabled={
-												isDeletingId === application.id
-											}
-											onClick={() =>
-												setDeleteTarget(application)
-											}
-											label={`Delete ${application.role}`}
-											tone="danger"
-										>
-											<Trash2
-												size={17}
-												strokeWidth={2.25}
-											/>
-										</IconButton>
+											<IconButton
+												disabled={
+													isDeletingId ===
+													application.id
+												}
+												onClick={() =>
+													setDeleteTarget(application)
+												}
+												label={`Delete ${application.role}`}
+												tone="danger"
+											>
+												<Trash2
+													size={17}
+													strokeWidth={2.25}
+												/>
+											</IconButton>
+										</div>
 									</div>
 								</div>
 							</article>
