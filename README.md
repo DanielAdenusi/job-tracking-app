@@ -408,16 +408,24 @@ Use this checklist after changes:
 
 ## Screenshots
 
+#### Home
+
+![Home](screenshots/home.png)
+
 #### Dashboard
+
 ![Dashboard](screenshots/dashboard.png)
 
 #### Applications
+
 ![Applications](screenshots/applications.png)
 
 #### Kanban
+
 ![Kanban](screenshots/kanban.png)
 
 #### Application Form
+
 ![Application Form](screenshots/application-form.png)
 
 ## Deployment Notes

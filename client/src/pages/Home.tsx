@@ -16,6 +16,7 @@ import { MarketingFooter } from "../components/MarketingFooter";
 import { MarketingNav } from "../components/MarketingNav";
 import { ButtonLink } from "../components/ui/Button";
 import { APP_NAME } from "../constants/pageTitle";
+import { Logo } from "../components/ui/Logo";
 
 const featureCards = [
 	{
@@ -79,13 +80,7 @@ function BrowserPreview() {
 			<div className="grid min-h-115 md:grid-cols-[230px_1fr]">
 				<aside className="hidden border-r border-(--landing-preview-line) bg-(--landing-preview-card) px-5 py-6 md:block">
 					<div className="flex items-center gap-2 text-(--landing-preview-text)">
-						<span className="h-6 w-4 rounded-sm bg-(--landing-accent)" />
-						<span className="text-sm font-black">
-							Job
-							<span className="text-(--landing-accent)">
-								Markr
-							</span>
-						</span>
+						<Logo hasTitle />
 					</div>
 
 					<nav className="mt-7 grid gap-2 text-sm font-bold">
@@ -283,9 +278,9 @@ export function HomePage() {
 					</h1>
 
 					<p className="mx-auto mt-7 max-w-2xl text-lg font-semibold leading-8 text-(--landing-muted)">
-						JobMarkr keeps roles, deadlines, interviews, offers, and
-						follow-ups in one calm workspace so the next action is
-						always obvious.
+						{APP_NAME} keeps roles, deadlines, interviews, offers,
+						and follow-ups in one calm workspace so the next action
+						is always obvious.
 					</p>
 
 					<div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
