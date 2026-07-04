@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { FileSpreadsheet, ListPlus, WandSparkles } from "lucide-react";
+import { Download, FileSpreadsheet, ListPlus, WandSparkles } from "lucide-react";
 import {
 	ApplicationForm,
 	type ApplicationFormValues,
@@ -11,6 +11,7 @@ import { PageHeading } from "../components/PageHeading";
 import { Button } from "../components/ui/Button";
 import { useToast } from "../components/ToastProvider";
 import { parseApplicationsSpreadsheet } from "../services/applicationSpreadsheetImport";
+import { downloadApplicationImportTemplate } from "../services/applicationImportTemplate";
 
 const sampleCompanies = [
 	"Northstar Labs",
@@ -129,6 +130,7 @@ export function NewApplicationPage() {
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isImporting, setIsImporting] = useState(false);
+	const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false);
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [sampleValues, setSampleValues] = useState<
 		Partial<ApplicationFormValues> | undefined
@@ -237,16 +239,38 @@ export function NewApplicationPage() {
 		}
 	}
 
-	const isBusy = isSubmitting || isImporting || isGenerating;
+	async function handleDownloadTemplate() {
+		try {
+			setError(null);
+			setIsDownloadingTemplate(true);
+			await downloadApplicationImportTemplate();
+			showToast("Downloaded the Excel import example.", "success");
+		} catch (err) {
+			const message =
+				err instanceof Error
+					? err.message
+					: "Failed to download the import example.";
+
+			setError(message);
+			showToast(message, "error");
+		} finally {
+			setIsDownloadingTemplate(false);
+		}
+	}
+
+	const isBusy =
+		isSubmitting || isImporting || isGenerating || isDownloadingTemplate;
 	const headingActions = [
 		...(import.meta.env.DEV
 			? [
 					{
+						id: "fill-details",
 						label: "Fill details",
 						icon: WandSparkles,
 						variant: "secondary" as const,
 					},
 					{
+						id: "generate",
 						label: isGenerating ? "Generating..." : "Generate 5",
 						icon: ListPlus,
 						variant: "secondary" as const,
@@ -254,6 +278,13 @@ export function NewApplicationPage() {
 				]
 			: []),
 		{
+			id: "download-template",
+			label: isDownloadingTemplate ? "Downloading..." : "Download example",
+			icon: Download,
+			variant: "secondary" as const,
+		},
+		{
+			id: "import",
 			label: isImporting ? "Importing..." : "Import Excel",
 			icon: FileSpreadsheet,
 			variant: "secondary" as const,
@@ -282,21 +313,25 @@ export function NewApplicationPage() {
 						variant={action.variant}
 						icon={<action.icon size={16} strokeWidth={2.4} />}
 						isLoading={
-							(action.label === "Importing..." && isImporting) ||
-							(action.label === "Generating..." && isGenerating)
+							(action.id === "import" && isImporting) ||
+							(action.id === "generate" && isGenerating) ||
+							(action.id === "download-template" &&
+								isDownloadingTemplate)
 						}
 						disabled={isBusy}
 						onClick={() => {
-							if (action.label === "Fill details") {
+							if (action.id === "fill-details") {
 								handleFillDetails();
 								return;
 							}
 
-							if (
-								action.label === "Generate 5" ||
-								action.label === "Generating..."
-							) {
+							if (action.id === "generate") {
 								void handleGenerateApplications();
+								return;
+							}
+
+							if (action.id === "download-template") {
+								void handleDownloadTemplate();
 								return;
 							}
 

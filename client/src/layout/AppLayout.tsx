@@ -38,6 +38,7 @@ import { APP_NAME } from "../constants/pageTitle";
 import { Logo } from "../components/ui/Logo";
 import { useToast } from "../components/ToastProvider";
 import { getAuthErrorMessage } from "../pages/Auth/sharedAuthUi";
+import { useAnimatedDisclosure } from "../hooks/useAnimatedDisclosure";
 
 const mainNavItems = [
 	{
@@ -586,7 +587,13 @@ export function AppLayout() {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { showToast } = useToast();
-	const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+	const {
+		isOpen: isMobileNavOpen,
+		isRendered: isMobileNavRendered,
+		isClosing: isMobileNavClosing,
+		open: openMobileNav,
+		close: closeMobileNav,
+	} = useAnimatedDisclosure();
 	const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 	const [isLoggingOut, setIsLoggingOut] = useState(false);
 	const [isSendingVerification, setIsSendingVerification] = useState(false);
@@ -612,7 +619,7 @@ export function AppLayout() {
 	const contentWidthClass = isKanbanPage ? "" : "max-w-[1680px]";
 
 	useEffect(() => {
-		if (!isMobileNavOpen) return;
+		if (!isMobileNavRendered) return;
 
 		const originalOverflow = document.body.style.overflow;
 		document.body.style.overflow = "hidden";
@@ -620,7 +627,7 @@ export function AppLayout() {
 		return () => {
 			document.body.style.overflow = originalOverflow;
 		};
-	}, [isMobileNavOpen]);
+	}, [isMobileNavRendered]);
 
 	useEffect(() => {
 		let isActive = true;
@@ -724,8 +731,9 @@ export function AppLayout() {
 			<header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200 bg-white/90 px-6 backdrop-blur lg:hidden">
 				<button
 					type="button"
-					onClick={() => setIsMobileNavOpen(true)}
+					onClick={openMobileNav}
 					aria-label="Open navigation"
+					aria-expanded={isMobileNavOpen}
 					className="grid h-10 w-10 place-items-center rounded-xl text-slate-500 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-white hover:text-slate-950 hover:shadow-sm hover:ring-1 hover:ring-slate-200"
 				>
 					<Menu size={24} strokeWidth={2} />
@@ -760,16 +768,28 @@ export function AppLayout() {
 				</Link>
 			</header>
 
-			{isMobileNavOpen && (
-				<div className="fixed inset-0 z-40 lg:hidden">
+			{isMobileNavRendered && (
+				<div
+					className={[
+						"app-mobile-nav-overlay fixed inset-0 z-40 lg:hidden",
+						isMobileNavOpen
+							? "app-mobile-nav-overlay-open"
+							: "app-mobile-nav-overlay-closed",
+					].join(" ")}
+				>
 					<button
 						type="button"
 						aria-label="Close navigation"
-						className="absolute inset-0 bg-black/55"
-						onClick={() => setIsMobileNavOpen(false)}
+						className="app-mobile-nav-backdrop absolute inset-0 bg-black/55"
+						onClick={closeMobileNav}
 					/>
 
-					<aside className="relative flex h-full w-[min(296px,82vw)] flex-col border-r border-slate-200 bg-white shadow-2xl">
+					<aside
+						className={[
+							"app-mobile-nav-panel relative flex h-full w-[min(296px,82vw)] flex-col border-r border-slate-200 bg-white shadow-2xl",
+							isMobileNavClosing ? "pointer-events-none" : "",
+						].join(" ")}
+					>
 						<div className="flex h-20 items-center justify-between border-b border-slate-200 px-6">
 							<div className="flex min-w-0 items-center gap-3">
 								<div className="app-accent-bg grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-black text-white">
@@ -785,7 +805,7 @@ export function AppLayout() {
 
 							<button
 								type="button"
-								onClick={() => setIsMobileNavOpen(false)}
+								onClick={closeMobileNav}
 								aria-label="Close navigation"
 								className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-slate-500 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-white hover:text-slate-950 hover:shadow-sm hover:ring-1 hover:ring-slate-200"
 							>
@@ -796,7 +816,7 @@ export function AppLayout() {
 						<div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 py-6">
 							<SidebarNavigation
 								pipelineCounts={pipelineCounts}
-								onNavigate={() => setIsMobileNavOpen(false)}
+								onNavigate={closeMobileNav}
 							/>
 						</div>
 

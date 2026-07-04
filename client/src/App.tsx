@@ -12,6 +12,11 @@ import { NotFoundPage } from "./pages/NotFound";
 import { HomePage } from "./pages/Home";
 import { HelpPage } from "./pages/Help";
 import { ContactPage } from "./pages/Contact";
+import {
+	CookiePolicyPage,
+	PrivacyPolicyPage,
+	TermsOfServicePage,
+} from "./pages/Legal";
 import { LoginPage } from "./pages/Auth/Login";
 import { SignUpPage } from "./pages/Auth/SignUp";
 import { ForgotPasswordPage } from "./pages/Auth/ForgotPassword";
@@ -26,6 +31,9 @@ function App() {
 			<Route path="/" element={<HomePage />} />
 			<Route path="/help" element={<HelpPage />} />
 			<Route path="/contact" element={<ContactPage />} />
+			<Route path="/terms" element={<TermsOfServicePage />} />
+			<Route path="/privacy" element={<PrivacyPolicyPage />} />
+			<Route path="/cookies" element={<CookiePolicyPage />} />
 
 			<Route
 				element={

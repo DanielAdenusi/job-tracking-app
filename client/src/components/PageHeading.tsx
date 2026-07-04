@@ -7,6 +7,7 @@ type PageHeadingItem = {
 };
 
 type PageHeadingAction = {
+	id?: string;
 	label: string;
 	to?: string;
 	icon: LucideIcon;
