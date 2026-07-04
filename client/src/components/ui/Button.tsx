@@ -17,6 +17,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 	icon?: ReactNode;
 	tone?: ButtonTone;
 	isLoading?: boolean;
+	iconPosition?: "start" | "end";
 };
 
 type ButtonLinkProps = LinkProps & ButtonProps;
@@ -130,6 +131,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 			variant = "secondary",
 			size = "md",
 			icon,
+			iconPosition = "start",
 			isLoading,
 			...props
 		},
@@ -147,8 +149,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 			})}
 			{...props}
 		>
-			{isLoading ? <Spinner size="sm" /> : icon}
+			{iconPosition === "start" &&
+				(isLoading ? <Spinner size="sm" /> : icon)}
 			{children}
+			{iconPosition === "end" &&
+				(isLoading ? <Spinner size="sm" /> : icon)}
 		</button>
 	),
 );
@@ -164,6 +169,7 @@ export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
 			variant = "secondary",
 			size = "md",
 			icon,
+			iconPosition = "start",
 			isLoading,
 			...props
 		},
@@ -174,8 +180,11 @@ export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
 			className={buttonClassNames({ className, size, variant, tone })}
 			{...props}
 		>
-			{isLoading ? <Spinner size="sm" /> : icon}
+			{iconPosition === "start" &&
+				(isLoading ? <Spinner size="sm" /> : icon)}
 			{children}
+			{iconPosition === "end" &&
+				(isLoading ? <Spinner size="sm" /> : icon)}
 		</Link>
 	),
 );
