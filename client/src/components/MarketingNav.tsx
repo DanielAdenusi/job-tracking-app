@@ -6,11 +6,18 @@ import { useAuth } from "../auth/useAuth";
 import { useAccountSettings } from "../context/AccountSettingsContext";
 import { Logo } from "./ui/Logo";
 import { Button, ButtonLink } from "./ui/Button";
+import { useAnimatedDisclosure } from "../hooks/useAnimatedDisclosure";
 
 export function MarketingNav() {
 	const { user } = useAuth();
 	const { settings, saveSettings, isLoadingSettings } = useAccountSettings();
-	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const {
+		isOpen: isMenuOpen,
+		isRendered: isMenuRendered,
+		isClosing: isMenuClosing,
+		open: openMenu,
+		close: closeMenu,
+	} = useAnimatedDisclosure();
 	const [isDark, setIsDark] = useState(() => {
 		if (settings.theme === "dark") return true;
 		if (settings.theme === "light") return false;
@@ -36,7 +43,7 @@ export function MarketingNav() {
 	}, [settings.theme]);
 
 	useEffect(() => {
-		if (!isMenuOpen) return;
+		if (!isMenuRendered) return;
 
 		const originalOverflow = document.body.style.overflow;
 		document.body.style.overflow = "hidden";
@@ -46,17 +53,13 @@ export function MarketingNav() {
 			document.body.style.overflow = originalOverflow;
 			document.documentElement.classList.remove("marketing-menu-open");
 		};
-	}, [isMenuOpen]);
+	}, [isMenuRendered]);
 
 	async function toggleTheme() {
 		await saveSettings({
 			...settings,
 			theme: isDark ? "light" : "dark",
 		});
-	}
-
-	function closeMenu() {
-		setIsMenuOpen(false);
 	}
 
 	return (
@@ -68,7 +71,7 @@ export function MarketingNav() {
 					aria-label="JobMarkr home"
 					variant="ghost"
 				>
-					<Logo size={40} hasTitle />
+					<Logo size={40} hasTitle hideTitleOnMobile />
 				</ButtonLink>
 
 				<nav className="hidden items-center gap-8 text-sm font-bold text-(--landing-muted) md:flex">
@@ -91,7 +94,7 @@ export function MarketingNav() {
 						type="button"
 						onClick={() => void toggleTheme()}
 						disabled={isLoadingSettings}
-						className="grid h-10 w-10 place-items-center rounded-lg border border-(--landing-line) bg-(--landing-control) text-(--landing-text) transition hover:-translate-y-0.5 hover:border-(--landing-accent) disabled:cursor-not-allowed disabled:opacity-60"
+						className="grid h-10 w-10 place-items-center rounded-lg border border-(--landing-line) bg-(--landing-control) text-(--landing-text) transition hover:-translate-y-0.5 hover:border-(--landing-accent) disabled:cursor-not-allowed disabled:opacity-60 max-sm:flex max-sm:w-fit max-sm:gap-2 max-sm:px-3"
 						aria-label={isDark ? "Use light mode" : "Use dark mode"}
 						title={isDark ? "Use light mode" : "Use dark mode"}
 					>
@@ -100,6 +103,14 @@ export function MarketingNav() {
 						) : (
 							<Moon size={18} strokeWidth={2.4} />
 						)}
+
+						<span
+							className={
+								user ? "hidden" : "sm:hidden font-bold text-sm"
+							}
+						>
+							{isDark ? "Light Mode" : "Dark Mode"}
+						</span>
 					</button>
 
 					{user ? (
@@ -111,10 +122,10 @@ export function MarketingNav() {
 							Open app
 						</ButtonLink>
 					) : (
-						<>
+						<div className="hidden sm:flex sm:items-center sm:gap-2">
 							<ButtonLink
 								to="/login"
-								variant="text"
+								variant="secondary"
 								className="hidden text-(--landing-text) md:inline-flex"
 							>
 								Log in
@@ -126,22 +137,30 @@ export function MarketingNav() {
 							>
 								Sign up
 							</ButtonLink>
-						</>
+						</div>
 					)}
 
 					<button
 						type="button"
-						onClick={() => setIsMenuOpen(true)}
+						onClick={openMenu}
 						className="grid h-10 w-10 place-items-center rounded-lg border border-(--landing-line) bg-(--landing-control) text-(--landing-text) transition hover:-translate-y-0.5 hover:border-(--landing-accent) md:hidden"
 						aria-label="Open menu"
+						aria-expanded={isMenuOpen}
 					>
 						<Menu size={20} strokeWidth={2.5} />
 					</button>
 				</div>
 			</div>
 
-			{isMenuOpen && (
-				<div className="fixed inset-0 z-50 md:hidden h-screen w-screen">
+			{isMenuRendered && (
+				<div
+					className={[
+						"marketing-menu-overlay fixed inset-0 z-50 h-screen w-screen md:hidden",
+						isMenuOpen
+							? "marketing-menu-overlay-open"
+							: "marketing-menu-overlay-closed",
+					].join(" ")}
+				>
 					<div
 						aria-hidden="true"
 						className="marketing-menu-backdrop absolute inset-0"
@@ -153,7 +172,12 @@ export function MarketingNav() {
 						className="absolute inset-0"
 					/>
 
-					<aside className="absolute right-2 top-2 flex h-[calc(100svh-1rem)] w-[min(304px,calc(100vw-1rem))] flex-col overflow-hidden rounded-xl border border-(--landing-line) bg-(--landing-card) text-(--landing-text) shadow-2xl shadow-black/35">
+					<aside
+						className={[
+							"marketing-menu-panel absolute right-2 top-2 flex h-[calc(100svh-1rem)] w-[min(304px,calc(100vw-1rem))] flex-col overflow-hidden rounded-xl border border-(--landing-line) bg-(--landing-card) text-(--landing-text) shadow-2xl shadow-black/35",
+							isMenuClosing ? "pointer-events-none" : "",
+						].join(" ")}
+					>
 						<div className="flex h-20 items-center justify-between border-b border-(--landing-line) px-5">
 							<Link
 								to="/"

@@ -15,7 +15,7 @@ export function MarketingFooter() {
 				</div>
 
 				<div className="mt-10 border-t border-(--landing-line) pt-10">
-					<div className="grid gap-10 md:grid-cols-3">
+					<div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
 						<div>
 							<p className="font-black text-(--landing-text)">
 								Product
@@ -42,6 +42,17 @@ export function MarketingFooter() {
 							<div className="mt-5 grid gap-3 text-sm font-semibold text-(--landing-muted)">
 								<Link to="/login">Log in</Link>
 								<Link to="/signup">Sign up</Link>
+							</div>
+						</div>
+
+						<div>
+							<p className="font-black text-(--landing-text)">
+								Legal
+							</p>
+							<div className="mt-5 grid gap-3 text-sm font-semibold text-(--landing-muted)">
+								<Link to="/terms">Terms of service</Link>
+								<Link to="/privacy">Privacy policy</Link>
+								<Link to="/cookies">Cookie policy</Link>
 							</div>
 						</div>
 					</div>

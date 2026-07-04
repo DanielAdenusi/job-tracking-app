@@ -14,6 +14,9 @@ const pageTitles = [
 	{ path: "/account/*", title: "Account" },
 	{ path: "/help", title: "Help" },
 	{ path: "/contact", title: "Contact" },
+	{ path: "/terms", title: "Terms of Service" },
+	{ path: "/privacy", title: "Privacy Policy" },
+	{ path: "/cookies", title: "Cookie Policy" },
 ];
 
 export function PageTitle() {

@@ -1467,6 +1467,53 @@ html[data-theme="light"] .marketing-menu-backdrop {
 	-webkit-backdrop-filter: blur(18px) saturate(0.85);
 }
 
+.marketing-menu-overlay,
+.app-mobile-nav-overlay {
+	pointer-events: none;
+}
+
+.marketing-menu-overlay-open,
+.app-mobile-nav-overlay-open {
+	pointer-events: auto;
+}
+
+.marketing-menu-backdrop,
+.app-mobile-nav-backdrop {
+	opacity: 0;
+	transition: opacity 220ms ease;
+}
+
+.marketing-menu-panel,
+.app-mobile-nav-panel {
+	opacity: 0;
+	will-change: opacity, transform;
+	transition:
+		opacity 220ms ease,
+		transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.marketing-menu-panel {
+	transform: translateX(1rem) scale(0.98);
+	transform-origin: top right;
+}
+
+.app-mobile-nav-panel {
+	transform: translateX(-1rem);
+	transform-origin: top left;
+}
+
+.marketing-menu-overlay-open .marketing-menu-backdrop,
+.app-mobile-nav-overlay-open .app-mobile-nav-backdrop,
+.marketing-menu-overlay-open .marketing-menu-panel,
+.app-mobile-nav-overlay-open .app-mobile-nav-panel {
+	opacity: 1;
+}
+
+.marketing-menu-overlay-open .marketing-menu-panel,
+.app-mobile-nav-overlay-open .app-mobile-nav-panel {
+	transform: translateX(0) scale(1);
+}
+
 .marketing-menu-open .landing-page > main,
 .marketing-menu-open .landing-page > footer {
 	filter: blur(10px);

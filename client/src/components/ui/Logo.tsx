@@ -31,6 +31,7 @@ type LogoProps = {
 	iconClassName?: string;
 	textClassName?: string;
 	hasTitle?: boolean;
+	hideTitleOnMobile?: boolean;
 	style?: LogoStyle;
 };
 
@@ -67,6 +68,7 @@ export function Logo({
 	iconClassName,
 	textClassName,
 	hasTitle = false,
+	hideTitleOnMobile = false,
 	style,
 }: LogoProps) {
 	const resolvedStrokeWidth = strokeWidth ?? sizeToStrokeWidth[size];
@@ -168,6 +170,7 @@ export function Logo({
 					className={cn(
 						"truncate rounded-lg font-extrabold text-lg tracking-tight",
 						hasBackgroundOnText && "px-2 py-1",
+						hideTitleOnMobile && "hidden sm:inline",
 						textClassName,
 					)}
 					style={{
