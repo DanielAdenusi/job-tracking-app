@@ -3,7 +3,7 @@
 	"short_name": "JobMarkr",
 	"description": "Track job applications, interviews, follow-ups, and offers in one focused workspace.",
 	"id": "/",
-	"start_url": "/",
+	"start_url": "/dashboard",
 	"scope": "/",
 	"display": "standalone",
 	"background_color": "#f8fafc",
