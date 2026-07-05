@@ -741,7 +741,7 @@ export function AppLayout() {
 	const isMobile = window.innerWidth < 1024;
 
 	return (
-		<div className="app-shell min-h-dvh bg-slate-50 text-slate-950 lg:grid lg:max-h-dvh lg:grid-cols-[256px_1fr] lg:overflow-hidden">
+		<div className="app-shell min-h-dvh bg-slate-50 text-slate-950 lg:grid lg:h-dvh lg:max-h-dvh lg:grid-cols-[256px_1fr] lg:overflow-hidden">
 			<header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200 bg-white/90 px-6 backdrop-blur lg:hidden">
 				<button
 					type="button"
@@ -847,7 +847,7 @@ export function AppLayout() {
 				</div>
 			)}
 
-			<aside className="hidden min-h-dvh max-h-dvh flex-col border-r border-slate-200 bg-white lg:flex">
+			<aside className="hidden h-dvh min-h-0 max-h-dvh flex-col border-r border-slate-200 bg-white lg:flex">
 				<div className="flex h-20 flex-col justify-center border-b border-slate-200 px-5">
 					<span className="relative">
 						<Link
@@ -884,7 +884,7 @@ export function AppLayout() {
 
 			<div
 				className={[
-					"min-h-[calc(100dvh-5rem)] min-w-0 bg-slate-50 lg:min-h-dvh lg:max-h-dvh",
+					"min-h-[calc(100dvh-5rem)] min-w-0 bg-slate-50 lg:h-dvh lg:min-h-0 lg:max-h-dvh",
 					isKanbanPage
 						? "overflow-hidden lg:flex lg:flex-col"
 						: "overflow-y-auto",

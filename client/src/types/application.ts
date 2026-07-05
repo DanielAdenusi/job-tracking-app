@@ -68,3 +68,8 @@ export type CreateApplicationInput = {
 };
 
 export type UpdateApplicationInput = Partial<CreateApplicationInput>;
+
+export type ExtractedApplicationDraft = {
+	application: Partial<CreateApplicationInput>;
+	message: string;
+};

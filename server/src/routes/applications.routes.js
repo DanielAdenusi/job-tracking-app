@@ -6,6 +6,7 @@ import {
 	getApplicationController,
 	getApplicationsByStatusController,
 	createApplicationController,
+	extractApplicationController,
 	updateApplicationController,
 	updateApplicationStatusController,
 	deleteApplicationController,
@@ -31,6 +32,10 @@ router.get("/status/:status", getApplicationsByStatusController);
 // POST /api/applications
 // Creates a new application for the logged-in user
 router.post("/", createApplicationController);
+
+// POST /api/applications/extract
+// Extracts a draft application from a pasted job URL
+router.post("/extract", extractApplicationController);
 
 // DELETE /api/applications
 // Deletes all applications for the logged-in user

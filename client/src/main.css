@@ -23,6 +23,13 @@
 }
 
 @layer base {
+	html:has(.app-shell),
+	body:has(.app-shell),
+	#root:has(.app-shell) {
+		block-size: 100%;
+		overflow: hidden;
+	}
+
 	body {
 		@apply font-sans;
 	}

@@ -2,6 +2,7 @@ import { apiFetch } from "../lib/api";
 import type {
 	Application,
 	CreateApplicationInput,
+	ExtractedApplicationDraft,
 	UpdateApplicationInput,
 } from "../types/application";
 import type { ApplicationStatus } from "../constants/applicationOptions";
@@ -104,6 +105,13 @@ export async function createApplication(data: CreateApplicationInput) {
 
 		return application;
 	}
+}
+
+export function extractApplicationFromUrl(url: string) {
+	return apiFetch<ExtractedApplicationDraft>("/applications/extract", {
+		method: "POST",
+		body: JSON.stringify({ url }),
+	});
 }
 
 export async function updateApplication(

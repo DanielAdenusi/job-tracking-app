@@ -8,6 +8,7 @@ import {
 	deleteApplication,
 	deleteApplicationsByUser,
 } from "../services/applications.service.js";
+import { extractApplicationFromUrl } from "../services/jobUrlExtractor.service.js";
 
 import { validateApplicationInput } from "../utils/validateApplication.js";
 import { APPLICATION_STATUSES } from "../constants/applicationOptions.js";
@@ -65,6 +66,30 @@ export async function createApplicationController(req, res, next) {
 
 		res.status(201).json(application);
 	} catch (error) {
+		next(error);
+	}
+}
+
+export async function extractApplicationController(req, res, next) {
+	try {
+		const url = String(req.body?.url || "").trim();
+
+		if (!url) {
+			return res.status(400).json({
+				message: "Job URL is required",
+			});
+		}
+
+		const result = await extractApplicationFromUrl(url);
+
+		res.json(result);
+	} catch (error) {
+		if (error.statusCode) {
+			return res.status(error.statusCode).json({
+				message: error.message,
+			});
+		}
+
 		next(error);
 	}
 }

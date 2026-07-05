@@ -1,14 +1,25 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { Download, FileSpreadsheet, ListPlus, WandSparkles } from "lucide-react";
+import {
+	Download,
+	FileSpreadsheet,
+	Link2,
+	ListPlus,
+	WandSparkles,
+} from "lucide-react";
 import {
 	ApplicationForm,
 	type ApplicationFormValues,
 } from "../components/ApplicationForm";
-import { createApplication } from "../services/applicationsApi";
+import {
+	createApplication,
+	extractApplicationFromUrl,
+} from "../services/applicationsApi";
 import type { CreateApplicationInput } from "../types/application";
 import { PageHeading } from "../components/PageHeading";
 import { Button } from "../components/ui/Button";
+import { Field, TextInput } from "../components/ui/FormControls";
+import { Card } from "../components/ui/Surface";
 import { useToast } from "../components/ToastProvider";
 import { parseApplicationsSpreadsheet } from "../services/applicationSpreadsheetImport";
 import { downloadApplicationImportTemplate } from "../services/applicationImportTemplate";
@@ -97,12 +108,12 @@ function createSampleApplication(index = 0): CreateApplicationInput {
 	};
 }
 
-function sampleApplicationToFormValues(
-	application: CreateApplicationInput,
+function applicationToFormValues(
+	application: Partial<CreateApplicationInput>,
 ): Partial<ApplicationFormValues> {
 	return {
-		company: application.company,
-		role: application.role,
+		company: application.company ?? "",
+		role: application.role ?? "",
 		location: application.location ?? "",
 		jobUrl: application.jobUrl ?? "",
 		salary: application.salary ?? "",
@@ -132,7 +143,12 @@ export function NewApplicationPage() {
 	const [isImporting, setIsImporting] = useState(false);
 	const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false);
 	const [isGenerating, setIsGenerating] = useState(false);
-	const [sampleValues, setSampleValues] = useState<
+	const [isExtracting, setIsExtracting] = useState(false);
+	const [urlToExtract, setUrlToExtract] = useState("");
+	const [extractionMessage, setExtractionMessage] = useState<string | null>(
+		null,
+	);
+	const [draftValues, setDraftValues] = useState<
 		Partial<ApplicationFormValues> | undefined
 	>();
 	const [error, setError] = useState<string | null>(null);
@@ -158,8 +174,38 @@ export function NewApplicationPage() {
 
 	function handleFillDetails() {
 		setError(null);
-		setSampleValues(sampleApplicationToFormValues(createSampleApplication()));
+		setDraftValues(applicationToFormValues(createSampleApplication()));
 		showToast("Filled the form with development sample details.", "success");
+	}
+
+	async function handleExtractFromUrl(event: React.FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+
+		try {
+			setError(null);
+			setExtractionMessage(null);
+			setIsExtracting(true);
+
+			const result = await extractApplicationFromUrl(urlToExtract);
+			const draft = applicationToFormValues({
+				...result.application,
+				jobUrl: result.application.jobUrl || urlToExtract,
+			});
+
+			setDraftValues(draft);
+			setExtractionMessage(result.message);
+			showToast("Extracted a draft application.", "success");
+		} catch (err) {
+			const message =
+				err instanceof Error
+					? err.message
+					: "Failed to extract that job URL.";
+
+			setError(message);
+			showToast(message, "error");
+		} finally {
+			setIsExtracting(false);
+		}
 	}
 
 	async function handleGenerateApplications() {
@@ -259,7 +305,11 @@ export function NewApplicationPage() {
 	}
 
 	const isBusy =
-		isSubmitting || isImporting || isGenerating || isDownloadingTemplate;
+		isSubmitting ||
+		isImporting ||
+		isGenerating ||
+		isDownloadingTemplate ||
+		isExtracting;
 	const headingActions = [
 		...(import.meta.env.DEV
 			? [
@@ -342,9 +392,46 @@ export function NewApplicationPage() {
 					</Button>
 				)}
 			/>
+			<Card className="p-6">
+				<form
+					className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end"
+					onSubmit={(event) => void handleExtractFromUrl(event)}
+				>
+					<Field
+						label="Paste a job URL"
+						description="Extracts a draft from structured job-posting data and page metadata."
+					>
+						<TextInput
+							type="url"
+							value={urlToExtract}
+							placeholder="https://company.com/jobs/frontend-developer"
+							onChange={(event) =>
+								setUrlToExtract(event.target.value)
+							}
+						/>
+					</Field>
+					<Button
+						type="submit"
+						variant="secondary"
+						tone="neutral"
+						icon={<Link2 size={16} strokeWidth={2.4} />}
+						isLoading={isExtracting}
+						disabled={isBusy || !urlToExtract.trim()}
+						className="lg:mb-0"
+					>
+						{isExtracting ? "Extracting..." : "Extract details"}
+					</Button>
+				</form>
+				{extractionMessage && (
+					<div className="mt-4 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm font-semibold leading-6 text-teal-900">
+						{extractionMessage} Review the fields below before
+						saving.
+					</div>
+				)}
+			</Card>
 			<ApplicationForm
 				mode="create"
-				initialValues={sampleValues}
+				initialValues={draftValues}
 				error={error}
 				isSubmitting={isSubmitting}
 				onSubmit={handleSubmit}
