@@ -18,12 +18,14 @@ type ImportResult = {
 	skippedRows: number;
 };
 
-const headerAliases: Record<keyof CreateApplicationInput, string[]> = {
+const headerAliases: Partial<Record<keyof CreateApplicationInput, string[]>> = {
 	company: ["company", "organisation", "organization", "employer"],
 	role: ["role", "job title", "position", "title"],
 	location: ["location", "city"],
 	jobUrl: ["job url", "job link", "url", "link", "posting url"],
 	salary: ["salary", "salary range", "pay"],
+	hoursPerWeek: ["hours per week", "weekly hours", "hours"],
+	jobReferenceId: ["job reference id", "reference id", "job ref", "reference"],
 	status: ["status", "stage"],
 	priority: ["priority"],
 	employmentType: ["employment type", "job type", "type"],
@@ -54,7 +56,7 @@ function normalizeOption(value: string) {
 }
 
 function findCellValue(row: SpreadsheetRow, field: keyof CreateApplicationInput) {
-	const aliases = headerAliases[field].map(normalizeHeader);
+	const aliases = headerAliases[field]?.map(normalizeHeader) ?? [];
 
 	for (const [header, value] of Object.entries(row)) {
 		if (aliases.includes(normalizeHeader(header))) {
@@ -176,6 +178,8 @@ function mapRowToApplication(
 		location: stringField(row, "location"),
 		jobUrl: stringField(row, "jobUrl"),
 		salary: stringField(row, "salary"),
+		hoursPerWeek: stringField(row, "hoursPerWeek"),
+		jobReferenceId: stringField(row, "jobReferenceId"),
 		status:
 			enumField<ApplicationStatus>(row, "status", APPLICATION_STATUSES) ??
 			"saved",

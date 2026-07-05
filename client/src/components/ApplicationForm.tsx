@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import {
 	APPLICATION_PRIORITIES,
 	APPLICATION_STATUSES,
@@ -12,7 +13,10 @@ import {
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Surface";
 import { Field, Select, Textarea, TextInput } from "./ui/FormControls";
-import type { CreateApplicationInput } from "../types/application";
+import type {
+	CreateApplicationInput,
+	JobDescriptionSections,
+} from "../types/application";
 
 export type ApplicationFormValues = {
 	company: string;
@@ -20,6 +24,8 @@ export type ApplicationFormValues = {
 	location: string;
 	jobUrl: string;
 	salary: string;
+	hoursPerWeek: string;
+	jobReferenceId: string;
 	status: ApplicationStatus;
 	priority: ApplicationPriority;
 	employmentType: EmploymentType | "";
@@ -28,6 +34,11 @@ export type ApplicationFormValues = {
 	contactName: string;
 	contactEmail: string;
 	notes: string;
+	jobDescriptionRole: string;
+	jobDescriptionResponsibilities: string;
+	jobDescriptionLookingFor: string;
+	jobDescriptionDesirable: string;
+	jobDescriptionWhyJoinUs: string;
 	appliedAt: string;
 	followUpAt: string;
 	deadlineAt: string;
@@ -42,6 +53,48 @@ type ApplicationFormProps = {
 	isSubmitting?: boolean;
 	error?: string | null;
 	onSubmit: (data: CreateApplicationInput) => Promise<void>;
+};
+
+type FormSectionId =
+	| "roleDetails"
+	| "trackingDetails"
+	| "jobDescription"
+	| "dates"
+	| "contactNotes";
+
+const sectionFields: Record<FormSectionId, (keyof ApplicationFormValues)[]> = {
+	roleDetails: [
+		"company",
+		"role",
+		"location",
+		"salary",
+		"hoursPerWeek",
+		"jobReferenceId",
+		"jobUrl",
+	],
+	trackingDetails: [
+		"status",
+		"priority",
+		"employmentType",
+		"workMode",
+		"source",
+	],
+	jobDescription: [
+		"jobDescriptionRole",
+		"jobDescriptionResponsibilities",
+		"jobDescriptionLookingFor",
+		"jobDescriptionDesirable",
+		"jobDescriptionWhyJoinUs",
+	],
+	dates: [
+		"appliedAt",
+		"followUpAt",
+		"deadlineAt",
+		"interviewAt",
+		"rejectedAt",
+		"offerDeadlineAt",
+	],
+	contactNotes: ["contactName", "contactEmail", "notes"],
 };
 
 function formatOption(value: string) {
@@ -73,22 +126,74 @@ function emptyToUndefined(value: string) {
 	return value.trim() === "" ? undefined : value.trim();
 }
 
+function parseListText(value: string) {
+	return value
+		.split(/\r?\n/)
+		.map((line) =>
+			line
+				.trim()
+				.replace(/^[-*•]\s+/, "")
+				.replace(/^\d+[.)]\s+/, "")
+				.trim(),
+		)
+		.filter(Boolean);
+}
+
+function buildJobDescription(values: ApplicationFormValues) {
+	const jobDescription: JobDescriptionSections = {
+		role: parseListText(values.jobDescriptionRole),
+		keyResponsibilities: parseListText(
+			values.jobDescriptionResponsibilities,
+		),
+		lookingFor: parseListText(values.jobDescriptionLookingFor),
+		desirable: parseListText(values.jobDescriptionDesirable),
+		whyJoinUs: parseListText(values.jobDescriptionWhyJoinUs),
+	};
+
+	return Object.values(jobDescription).some((items) => items.length > 0)
+		? jobDescription
+		: undefined;
+}
+
 function FormSection({
 	children,
 	description,
+	isCollapsed,
+	onToggle,
 	title,
 }: {
 	children: ReactNode;
 	description: string;
+	isCollapsed: boolean;
+	onToggle: () => void;
 	title: string;
 }) {
 	return (
 		<Card className="p-6">
-			<div>
-				<h3 className="text-lg font-extrabold">{title}</h3>
-				<p className="mt-1 text-sm text-slate-500">{description}</p>
+			<div className="flex items-start justify-between gap-4">
+				<div>
+					<h3 className="text-lg font-extrabold">{title}</h3>
+					<p className="mt-1 text-sm text-slate-500">{description}</p>
+				</div>
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					onClick={onToggle}
+				>
+					{isCollapsed ? (
+						<ChevronDown size={15} strokeWidth={2.5} />
+					) : (
+						<ChevronUp size={15} strokeWidth={2.5} />
+					)}
+					<span className="hidden sm:inline">
+						{isCollapsed ? "Show" : "Hide"}
+					</span>
+				</Button>
 			</div>
-			<div className="mt-6 grid gap-5 md:grid-cols-2">{children}</div>
+			{!isCollapsed && (
+				<div className="mt-6 grid gap-5 md:grid-cols-2">{children}</div>
+			)}
 		</Card>
 	);
 }
@@ -140,6 +245,8 @@ const defaultValues: ApplicationFormValues = {
 	location: "",
 	jobUrl: "",
 	salary: "",
+	hoursPerWeek: "",
+	jobReferenceId: "",
 	status: "saved",
 	priority: "medium",
 	employmentType: "",
@@ -148,6 +255,11 @@ const defaultValues: ApplicationFormValues = {
 	contactName: "",
 	contactEmail: "",
 	notes: "",
+	jobDescriptionRole: "",
+	jobDescriptionResponsibilities: "",
+	jobDescriptionLookingFor: "",
+	jobDescriptionDesirable: "",
+	jobDescriptionWhyJoinUs: "",
 	appliedAt: "",
 	followUpAt: "",
 	deadlineAt: "",
@@ -173,6 +285,15 @@ export function ApplicationForm({
 
 	const [values, setValues] = useState<ApplicationFormValues>(startingValues);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+	const [collapsedSections, setCollapsedSections] = useState<
+		Record<FormSectionId, boolean>
+	>({
+		roleDetails: false,
+		trackingDetails: true,
+		jobDescription: true,
+		dates: true,
+		contactNotes: true,
+	});
 
 	useEffect(() => {
 		setValues(startingValues);
@@ -194,6 +315,32 @@ export function ApplicationForm({
 		}));
 	}
 
+	function toggleSection(section: FormSectionId) {
+		setCollapsedSections((current) => ({
+			...current,
+			[section]: !current[section],
+		}));
+	}
+
+	function openSectionsForErrors(errors: Record<string, string>) {
+		const erroredFields = new Set(Object.keys(errors));
+
+		setCollapsedSections((current) => {
+			const next = { ...current };
+
+			for (const [section, fields] of Object.entries(sectionFields) as [
+				FormSectionId,
+				(keyof ApplicationFormValues)[],
+			][]) {
+				if (fields.some((field) => erroredFields.has(field))) {
+					next[section] = false;
+				}
+			}
+
+			return next;
+		});
+	}
+
 	function validateForm() {
 		const errors: Record<string, string> = {};
 
@@ -212,6 +359,7 @@ export function ApplicationForm({
 		}
 
 		setFieldErrors(errors);
+		openSectionsForErrors(errors);
 
 		return Object.keys(errors).length === 0;
 	}
@@ -227,6 +375,9 @@ export function ApplicationForm({
 			location: emptyToUndefined(values.location),
 			jobUrl: emptyToUndefined(values.jobUrl),
 			salary: emptyToUndefined(values.salary),
+			hoursPerWeek: emptyToUndefined(values.hoursPerWeek),
+			jobReferenceId: emptyToUndefined(values.jobReferenceId),
+			jobDescription: buildJobDescription(values),
 			status: values.status,
 			priority: values.priority,
 			employmentType: values.employmentType,
@@ -263,6 +414,8 @@ export function ApplicationForm({
 			<FormSection
 				title="Role details"
 				description="Add the core information about the job you are tracking."
+				isCollapsed={collapsedSections.roleDetails}
+				onToggle={() => toggleSection("roleDetails")}
 			>
 				<TextField
 					field="company"
@@ -297,6 +450,20 @@ export function ApplicationForm({
 					onChange={(value) => updateField("salary", value)}
 				/>
 				<TextField
+					field="hoursPerWeek"
+					label="Hours per week"
+					value={values.hoursPerWeek}
+					placeholder="e.g. 37.5"
+					onChange={(value) => updateField("hoursPerWeek", value)}
+				/>
+				<TextField
+					field="jobReferenceId"
+					label="Job reference ID"
+					value={values.jobReferenceId}
+					placeholder="e.g. JR-12345"
+					onChange={(value) => updateField("jobReferenceId", value)}
+				/>
+				<TextField
 					className="md:col-span-2"
 					field="jobUrl"
 					label="Job URL"
@@ -308,8 +475,83 @@ export function ApplicationForm({
 			</FormSection>
 
 			<FormSection
+				title="Job description"
+				description="Paste the job advert sections here. Each line becomes a list item on the application details page."
+				isCollapsed={collapsedSections.jobDescription}
+				onToggle={() => toggleSection("jobDescription")}
+			>
+				<Field className="md:col-span-2" label="The role">
+					<Textarea
+						value={values.jobDescriptionRole}
+						onChange={(event) =>
+							updateField(
+								"jobDescriptionRole",
+								event.target.value,
+							)
+						}
+						placeholder="Paste role summary bullets or paragraphs, one point per line..."
+						rows={3}
+					/>
+				</Field>
+				<Field className="md:col-span-2" label="Key responsibilities">
+					<Textarea
+						value={values.jobDescriptionResponsibilities}
+						onChange={(event) =>
+							updateField(
+								"jobDescriptionResponsibilities",
+								event.target.value,
+							)
+						}
+						placeholder="Build user interfaces&#10;Collaborate with product and design&#10;Review code"
+						rows={3}
+					/>
+				</Field>
+				<Field className="md:col-span-2" label="What we're looking for">
+					<Textarea
+						value={values.jobDescriptionLookingFor}
+						onChange={(event) =>
+							updateField(
+								"jobDescriptionLookingFor",
+								event.target.value,
+							)
+						}
+						placeholder="Paste required skills, experience, or qualities..."
+						rows={3}
+					/>
+				</Field>
+				<Field className="md:col-span-2" label="Desirable">
+					<Textarea
+						value={values.jobDescriptionDesirable}
+						onChange={(event) =>
+							updateField(
+								"jobDescriptionDesirable",
+								event.target.value,
+							)
+						}
+						placeholder="Paste nice-to-have skills or experience..."
+						rows={3}
+					/>
+				</Field>
+				<Field className="md:col-span-2" label="Why join us?">
+					<Textarea
+						value={values.jobDescriptionWhyJoinUs}
+						onChange={(event) =>
+							updateField(
+								"jobDescriptionWhyJoinUs",
+								event.target.value,
+							)
+						}
+						placeholder="Paste benefits, culture, learning, progression, or mission details..."
+						rows={3}
+					/>
+				</Field>
+			</FormSection>
+
+			<FormSection
 				title="Tracking details"
 				description="Set the current stage, priority, work mode, and source."
+				isCollapsed={collapsedSections.trackingDetails}
+				onToggle={() => toggleSection("trackingDetails")}
 			>
 				<Field label="Status">
 					<Select
@@ -394,6 +636,8 @@ export function ApplicationForm({
 			<FormSection
 				title="Dates"
 				description="Add deadlines, follow-ups, interviews, and outcome dates."
+				isCollapsed={collapsedSections.dates}
+				onToggle={() => toggleSection("dates")}
 			>
 				<TextField
 					field="appliedAt"
@@ -442,6 +686,8 @@ export function ApplicationForm({
 			<FormSection
 				title="Contact and notes"
 				description="Store recruiter contact details and anything useful for follow-up."
+				isCollapsed={collapsedSections.contactNotes}
+				onToggle={() => toggleSection("contactNotes")}
 			>
 				<TextField
 					field="contactName"

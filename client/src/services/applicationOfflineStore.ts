@@ -94,6 +94,23 @@ function optionalDate(value: string | undefined) {
 	return value || null;
 }
 
+function normalizeJobDescription(
+	value: CreateApplicationInput["jobDescription"] | Application["jobDescription"] | undefined,
+) {
+	const normalizeItems = (items: unknown) =>
+		(Array.isArray(items) ? items : [])
+			.map((item) => String(item).trim())
+			.filter(Boolean);
+
+	return {
+		role: normalizeItems(value?.role),
+		keyResponsibilities: normalizeItems(value?.keyResponsibilities),
+		lookingFor: normalizeItems(value?.lookingFor),
+		desirable: normalizeItems(value?.desirable),
+		whyJoinUs: normalizeItems(value?.whyJoinUs),
+	};
+}
+
 function createLocalId() {
 	if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
 		return `local-${crypto.randomUUID()}`;
@@ -117,6 +134,9 @@ function buildLocalApplication(
 		location: nullableText(data.location),
 		jobUrl: nullableText(data.jobUrl),
 		salary: nullableText(data.salary),
+		hoursPerWeek: nullableText(data.hoursPerWeek),
+		jobReferenceId: nullableText(data.jobReferenceId),
+		jobDescription: normalizeJobDescription(data.jobDescription),
 		status,
 		priority: data.priority || "medium",
 		employmentType: data.employmentType || null,
@@ -277,6 +297,18 @@ export function updateCachedApplication(
 			data.jobUrl === undefined ? existing.jobUrl : nullableText(data.jobUrl),
 		salary:
 			data.salary === undefined ? existing.salary : nullableText(data.salary),
+		hoursPerWeek:
+			data.hoursPerWeek === undefined
+				? existing.hoursPerWeek
+				: nullableText(data.hoursPerWeek),
+		jobReferenceId:
+			data.jobReferenceId === undefined
+				? existing.jobReferenceId
+				: nullableText(data.jobReferenceId),
+		jobDescription:
+			data.jobDescription === undefined
+				? normalizeJobDescription(existing.jobDescription)
+				: normalizeJobDescription(data.jobDescription),
 		employmentType:
 			data.employmentType === undefined
 				? existing.employmentType

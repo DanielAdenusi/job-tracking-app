@@ -78,6 +78,27 @@ export function validateApplicationInput(data, { partial = false } = {}) {
 		}
 	}
 
+	if (
+		data.jobDescription !== undefined &&
+		(data.jobDescription === null ||
+			typeof data.jobDescription !== "object" ||
+			Array.isArray(data.jobDescription))
+	) {
+		errors.jobDescription = "Job description must be a section object";
+	}
+
+	if (data.hoursPerWeek) {
+		const numericValue = Number(data.hoursPerWeek);
+
+		if (
+			Number.isNaN(numericValue) ||
+			numericValue <= 0 ||
+			numericValue > 168
+		) {
+			errors.hoursPerWeek = "Hours per week must be between 1 and 168";
+		}
+	}
+
 	return {
 		isValid: Object.keys(errors).length === 0,
 		errors,

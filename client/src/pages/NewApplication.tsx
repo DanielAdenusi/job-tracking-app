@@ -86,6 +86,24 @@ function createSampleApplication(index = 0): CreateApplicationInput {
 			.toLowerCase()
 			.replaceAll(" ", "-")}-${index + 1}`,
 		salary: `GBP ${28 + index * 3},000 - GBP ${36 + index * 4},000`,
+		hoursPerWeek: "37.5",
+		jobReferenceId: `JM-${String(index + 1).padStart(4, "0")}`,
+		jobDescription: {
+			role: [
+				"Work on user-facing product features.",
+				"Help improve the job tracking experience.",
+			],
+			keyResponsibilities: [
+				"Build reliable UI components.",
+				"Collaborate with product and design.",
+			],
+			lookingFor: [
+				"Comfortable with React and TypeScript.",
+				"Clear written communication.",
+			],
+			desirable: ["Experience with accessibility testing."],
+			whyJoinUs: ["Supportive team and room to grow."],
+		},
 		status: pick(
 			["wishlist", "saved", "applied", "assessment", "interviewing"],
 			index,
@@ -117,6 +135,17 @@ function applicationToFormValues(
 		location: application.location ?? "",
 		jobUrl: application.jobUrl ?? "",
 		salary: application.salary ?? "",
+		hoursPerWeek: application.hoursPerWeek ?? "",
+		jobReferenceId: application.jobReferenceId ?? "",
+		jobDescriptionRole: application.jobDescription?.role?.join("\n") ?? "",
+		jobDescriptionResponsibilities:
+			application.jobDescription?.keyResponsibilities?.join("\n") ?? "",
+		jobDescriptionLookingFor:
+			application.jobDescription?.lookingFor?.join("\n") ?? "",
+		jobDescriptionDesirable:
+			application.jobDescription?.desirable?.join("\n") ?? "",
+		jobDescriptionWhyJoinUs:
+			application.jobDescription?.whyJoinUs?.join("\n") ?? "",
 		status: application.status ?? "saved",
 		priority: application.priority ?? "medium",
 		employmentType: application.employmentType ?? "",

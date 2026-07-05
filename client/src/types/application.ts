@@ -14,6 +14,9 @@ export type Application = {
 	location: string | null;
 	jobUrl: string | null;
 	salary: string | null;
+	hoursPerWeek: string | null;
+	jobReferenceId: string | null;
+	jobDescription: JobDescriptionSections;
 
 	status: ApplicationStatus;
 	priority: ApplicationPriority;
@@ -45,12 +48,23 @@ export type ApplicationStatusTransition = {
 	transitionedAt: string;
 };
 
+export type JobDescriptionSections = {
+	role: string[];
+	keyResponsibilities: string[];
+	lookingFor: string[];
+	desirable: string[];
+	whyJoinUs: string[];
+};
+
 export type CreateApplicationInput = {
 	company: string;
 	role: string;
 	location?: string;
 	jobUrl?: string;
 	salary?: string;
+	hoursPerWeek?: string;
+	jobReferenceId?: string;
+	jobDescription?: JobDescriptionSections;
 	status?: ApplicationStatus;
 	priority?: ApplicationPriority;
 	employmentType?: EmploymentType | "";

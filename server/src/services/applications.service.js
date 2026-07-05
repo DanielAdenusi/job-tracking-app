@@ -13,6 +13,23 @@ function getNextOptionalValue(dataValue, existingValue) {
 	return emptyToNull(dataValue);
 }
 
+function normalizeJobDescription(value) {
+	const description =
+		value && typeof value === "object" && !Array.isArray(value) ? value : {};
+	const normalizeItems = (items) =>
+		(Array.isArray(items) ? items : [])
+			.map((item) => String(item).trim())
+			.filter(Boolean);
+
+	return {
+		role: normalizeItems(description.role),
+		keyResponsibilities: normalizeItems(description.keyResponsibilities),
+		lookingFor: normalizeItems(description.lookingFor),
+		desirable: normalizeItems(description.desirable),
+		whyJoinUs: normalizeItems(description.whyJoinUs),
+	};
+}
+
 function formatTransitionTimestamp(value) {
 	if (!value) {
 		return new Date().toISOString();
@@ -86,6 +103,9 @@ function mapApplicationRow(row) {
 		location: row.location,
 		jobUrl: row.job_url,
 		salary: row.salary,
+		hoursPerWeek: row.hours_per_week,
+		jobReferenceId: row.job_reference_id,
+		jobDescription: normalizeJobDescription(row.job_description),
 		status: row.status,
 		priority: row.priority,
 		employmentType: row.employment_type,
@@ -167,6 +187,9 @@ export async function createApplication(userId, data) {
       location,
       job_url,
       salary,
+      hours_per_week,
+      job_reference_id,
+      job_description,
       status,
       priority,
       employment_type,
@@ -185,12 +208,13 @@ export async function createApplication(userId, data) {
     )
     VALUES (
       $1, $2, $3, $4, $5,
-      $6, COALESCE($7, 'saved'), COALESCE($8, 'medium'), $9, $10,
-      $11, $12, $13, $14, $15,
-      $16, $17, $18, $19, $20,
+      $6, $7, $8, COALESCE($9::jsonb, '{}'::jsonb), COALESCE($10, 'saved'),
+      COALESCE($11, 'medium'), $12, $13, $14,
+      $15, $16, $17, $18, $19,
+      $20, $21, $22, $23,
       jsonb_build_array(
         jsonb_build_object(
-          'status', COALESCE($7, 'saved'),
+          'status', COALESCE($10, 'saved'),
           'transitionedAt', NOW()
         )
       )
@@ -204,6 +228,9 @@ export async function createApplication(userId, data) {
 			data.location || null,
 			data.jobUrl || null,
 			data.salary || null,
+			data.hoursPerWeek || null,
+			data.jobReferenceId || null,
+			JSON.stringify(normalizeJobDescription(data.jobDescription)),
 			data.status || "saved",
 			data.priority || "medium",
 			data.employmentType || null,
@@ -246,21 +273,24 @@ export async function updateApplication(userId, applicationId, data) {
       location = $5,
       job_url = $6,
       salary = $7,
-      status = COALESCE($8, status),
-      priority = COALESCE($9, priority),
-      employment_type = $10,
-      work_mode = $11,
-      source = $12,
-      contact_name = $13,
-      contact_email = $14,
-      notes = $15,
-      applied_at = $16,
-      follow_up_at = $17,
-      deadline_at = $18,
-      interview_at = $19,
-      rejected_at = $20,
-      offer_deadline_at = $21,
-      status_transitions = $22::jsonb
+      hours_per_week = $8,
+      job_reference_id = $9,
+      job_description = $10::jsonb,
+      status = COALESCE($11, status),
+      priority = COALESCE($12, priority),
+      employment_type = $13,
+      work_mode = $14,
+      source = $15,
+      contact_name = $16,
+      contact_email = $17,
+      notes = $18,
+      applied_at = $19,
+      follow_up_at = $20,
+      deadline_at = $21,
+      interview_at = $22,
+      rejected_at = $23,
+      offer_deadline_at = $24,
+      status_transitions = $25::jsonb
     WHERE user_id = $1
     AND id = $2
     RETURNING *
@@ -273,6 +303,13 @@ export async function updateApplication(userId, applicationId, data) {
 			getNextOptionalValue(data.location, existing.location),
 			getNextOptionalValue(data.jobUrl, existing.jobUrl),
 			getNextOptionalValue(data.salary, existing.salary),
+			getNextOptionalValue(data.hoursPerWeek, existing.hoursPerWeek),
+			getNextOptionalValue(data.jobReferenceId, existing.jobReferenceId),
+			JSON.stringify(
+				data.jobDescription === undefined
+					? existing.jobDescription
+					: normalizeJobDescription(data.jobDescription),
+			),
 			data.status ?? existing.status,
 			data.priority ?? existing.priority,
 			getNextOptionalValue(data.employmentType, existing.employmentType),

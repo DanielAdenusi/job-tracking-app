@@ -54,6 +54,19 @@ export function EditApplicationPage() {
 			location: application.location ?? "",
 			jobUrl: application.jobUrl ?? "",
 			salary: application.salary ?? "",
+			hoursPerWeek: application.hoursPerWeek ?? "",
+			jobReferenceId: application.jobReferenceId ?? "",
+			jobDescriptionRole:
+				application.jobDescription?.role?.join("\n") ?? "",
+			jobDescriptionResponsibilities:
+				application.jobDescription?.keyResponsibilities?.join("\n") ??
+				"",
+			jobDescriptionLookingFor:
+				application.jobDescription?.lookingFor?.join("\n") ?? "",
+			jobDescriptionDesirable:
+				application.jobDescription?.desirable?.join("\n") ?? "",
+			jobDescriptionWhyJoinUs:
+				application.jobDescription?.whyJoinUs?.join("\n") ?? "",
 			status: application.status,
 			priority: application.priority,
 			employmentType: application.employmentType ?? "",

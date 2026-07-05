@@ -289,6 +289,7 @@ export function ApplicationsPage() {
 		getSortOptionFromParams(searchParams),
 	);
 	const debouncedSearchTerm = useDebouncedValue(searchTerm, 250);
+	const isHydratingSearchParamsRef = useRef(false);
 
 	async function loadApplications() {
 		try {
@@ -314,6 +315,8 @@ export function ApplicationsPage() {
 	}, []);
 
 	useEffect(() => {
+		isHydratingSearchParamsRef.current = true;
+
 		const nextSearchTerm = searchParams.get("q") || "";
 		const nextStatusFilter = getStatusFilterFromParams(searchParams);
 		const nextPriorityFilter = getPriorityFilterFromParams(searchParams);
@@ -326,6 +329,11 @@ export function ApplicationsPage() {
 	}, [searchParams]);
 
 	useEffect(() => {
+		if (isHydratingSearchParamsRef.current) {
+			isHydratingSearchParamsRef.current = false;
+			return;
+		}
+
 		const params = new URLSearchParams();
 
 		if (debouncedSearchTerm.trim()) {
@@ -1213,28 +1221,64 @@ export function ApplicationsPage() {
 												</h3>
 
 												<div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-semibold text-slate-500">
-													<span className="inline-flex items-center gap-1.5">
-														<Building2
-															size={15}
-															strokeWidth={2.25}
-															className="text-slate-400"
-														/>
-														{application.company}
-													</span>
-
-													{application.location && (
-														<span className="inline-flex items-center gap-1.5">
-															<MapPin
+													<ButtonLink
+														variant="text"
+														to={`/applications?${new URLSearchParams(
+															{
+																q: application.company,
+															},
+														).toString()}`}
+														className="inline-flex items-center gap-1.5"
+														aria-label={`Search applications for ${application.company}`}
+														onClick={
+															stopRowNavigation
+														}
+														onKeyDown={
+															stopRowNavigation
+														}
+														icon={
+															<Building2
 																size={15}
 																strokeWidth={
 																	2.25
 																}
 																className="text-slate-400"
 															/>
+														}
+													>
+														{application.company}
+													</ButtonLink>
+
+													{application.location && (
+														<ButtonLink
+															variant="text"
+															to={`/applications?${new URLSearchParams(
+																{
+																	q: application.location,
+																},
+															).toString()}`}
+															className="inline-flex items-center gap-1.5"
+															aria-label={`Search applications for ${application.location}`}
+															onClick={
+																stopRowNavigation
+															}
+															onKeyDown={
+																stopRowNavigation
+															}
+															icon={
+																<MapPin
+																	size={15}
+																	strokeWidth={
+																		2.25
+																	}
+																	className="text-slate-400"
+																/>
+															}
+														>
 															{
 																application.location
 															}
-														</span>
+														</ButtonLink>
 													)}
 
 													<span className="inline-flex items-center gap-1.5">

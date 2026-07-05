@@ -13,14 +13,18 @@ import {
 	ExternalLink,
 	FileText,
 	Flag,
+	Hash,
 	Laptop,
-	Lock,
+	ListChecks,
 	MapPin,
 	MessageSquare,
 	PencilLine,
 	PoundSterling,
 	Trash2,
+	Timer,
 	WifiOff,
+	PanelTopClose,
+	PanelTopOpen,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -30,7 +34,6 @@ import {
 import {
 	deleteApplication,
 	getApplication,
-	updateApplication,
 	updateApplicationStatus,
 } from "../services/applicationsApi";
 import { isLocalApplicationId } from "../services/applicationOfflineStore";
@@ -39,7 +42,6 @@ import type { Application } from "../types/application";
 import type { ApplicationStatusTransition } from "../types/application";
 import { ConfirmationModal } from "../components/ConfirmationModal";
 import { Button, ButtonLink } from "../components/ui/Button";
-import { Textarea } from "../components/ui/FormControls";
 import { APP_NAME } from "../constants/pageTitle";
 
 const STATUS_ADVANCE_ORDER: ApplicationStatus[] = [
@@ -238,11 +240,8 @@ function getTimelineTransitions(application: Application) {
 			currentStageIndex + 1,
 		)
 			.map((status) => latestTransitionByStatus[status])
-			.filter(
-				(
-					transition,
-				): transition is ApplicationStatusTransition =>
-					Boolean(transition),
+			.filter((transition): transition is ApplicationStatusTransition =>
+				Boolean(transition),
 			);
 
 		if (
@@ -260,9 +259,8 @@ function getTimelineTransitions(application: Application) {
 	}
 
 	const latestTransitions = Object.values(latestTransitionByStatus)
-		.filter(
-			(transition): transition is ApplicationStatusTransition =>
-				Boolean(transition),
+		.filter((transition): transition is ApplicationStatusTransition =>
+			Boolean(transition),
 		)
 		.sort(
 			(first, second) =>
@@ -316,6 +314,33 @@ function DetailField({
 	);
 }
 
+const JOB_DESCRIPTION_SECTIONS = [
+	{ key: "role", title: "The role" },
+	{ key: "keyResponsibilities", title: "Key responsibilities" },
+	{ key: "lookingFor", title: "What we're looking for" },
+	{ key: "desirable", title: "Desirable" },
+	{ key: "whyJoinUs", title: "Why join us?" },
+] as const;
+
+function getVisibleJobDescriptionSections(
+	application: Application,
+	isExpanded: boolean,
+) {
+	const sections = JOB_DESCRIPTION_SECTIONS.map((section) => ({
+		...section,
+		items: application.jobDescription?.[section.key] ?? [],
+	})).filter((section) => section.items.length > 0);
+
+	return isExpanded ? sections : sections.slice(0, 3);
+}
+
+function hasJobDescription(application: Application) {
+	return JOB_DESCRIPTION_SECTIONS.some(
+		(section) =>
+			(application.jobDescription?.[section.key] ?? []).length > 0,
+	);
+}
+
 function SkeletonBlock({ className }: { className: string }) {
 	return (
 		<div
@@ -333,10 +358,9 @@ function ApplicationDetailsSkeleton() {
 			<article className="application-detail-panel relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/50">
 				<SkeletonBlock className="absolute inset-x-0 top-0 h-1.5 rounded-none" />
 
-				<div className="flex flex-col gap-3 border-b border-slate-100 px-5 pb-4 pt-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+				<div className="flex flex-row gap-3 border-b border-slate-100 px-5 pb-4 pt-6 items-center justify-between sm:px-8">
 					<div className="flex items-center gap-2">
-						<SkeletonBlock className="h-8 w-8" />
-						<SkeletonBlock className="h-4 w-36" />
+						<SkeletonBlock className="h-10 sm:h-8 w-12 sm:w-48" />
 					</div>
 					<SkeletonBlock className="h-4 w-28" />
 				</div>
@@ -359,7 +383,7 @@ function ApplicationDetailsSkeleton() {
 					<div className="grid gap-3 sm:grid-cols-3 lg:flex">
 						<SkeletonBlock className="h-10 w-full sm:w-32" />
 						<SkeletonBlock className="h-10 w-full sm:w-32" />
-						<SkeletonBlock className="h-10 w-full sm:w-10" />
+						<SkeletonBlock className="h-10 w-full sm:w-24" />
 					</div>
 				</div>
 
@@ -374,38 +398,46 @@ function ApplicationDetailsSkeleton() {
 
 			<div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
 				<article className="rounded-xl border border-slate-200 bg-white px-5 py-6 shadow-sm shadow-slate-200/50 sm:px-6 sm:py-7">
-					<SkeletonBlock className="h-6 w-36" />
+					<SkeletonBlock className="h-8 w-36" />
 					<div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
-						{Array.from({ length: 6 }).map((_, index) => (
-							<div
-								key={index}
-								className="rounded-lg border border-slate-100 bg-slate-50 p-4"
-							>
-								<SkeletonBlock className="h-3 w-20" />
-								<SkeletonBlock className="mt-3 h-4 w-24" />
-							</div>
-						))}
+						{Array.from({ length: 8 }).map((_, index) => {
+							const isSecondToLastOrLast =
+								index === 6 || index === 7;
+
+							const baseClass =
+								"rounded-lg border border-slate-100 bg-slate-50 p-4";
+
+							const className = `${baseClass} ${isSecondToLastOrLast ? "col-span-2 sm:col-span-1" : ""}`;
+
+							return (
+								<div key={index} className={className}>
+									<SkeletonBlock className="h-4 w-20" />
+									<SkeletonBlock className="mt-3 h-6 w-24" />
+								</div>
+							);
+						})}
 					</div>
 				</article>
 
-				<article className="rounded-xl border border-slate-200 bg-white px-5 py-6 shadow-sm shadow-slate-200/50 sm:px-6 sm:py-7">
+				<article className="rounded-xl border border-slate-200 bg-white px-5 py-6 shadow-sm shadow-slate-200/50 sm:px-6 sm:py-7 xl:row-span-1">
 					<SkeletonBlock className="h-6 w-40" />
 					<div className="mt-7 space-y-5">
-						{Array.from({ length: 2 }).map((_, index) => (
+						{Array.from({ length: 3 }).map((_, index) => (
 							<div key={index} className="flex gap-3">
 								<SkeletonBlock className="mt-1 h-3 w-3 rounded-full" />
 								<div className="flex-1">
 									<SkeletonBlock className="h-4 w-36" />
 									<SkeletonBlock className="mt-2 h-3 w-24" />
+									<SkeletonBlock className="mt-2 h-1 w-12" />
 								</div>
 							</div>
 						))}
 					</div>
 				</article>
 
-				<article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/50 sm:p-6 xl:col-span-2">
-					<SkeletonBlock className="h-6 w-32" />
-					<SkeletonBlock className="mt-5 h-40 w-full" />
+				<article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/50 sm:p-6">
+					<SkeletonBlock className="h-10 w-32" />
+					<SkeletonBlock className="mt-5 h-16 w-full" />
 				</article>
 			</div>
 		</section>
@@ -419,11 +451,9 @@ export function ApplicationDetailsPage() {
 	const [application, setApplication] = useState<Application | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const [isDiscardNotesModalOpen, setIsDiscardNotesModalOpen] =
-		useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
-	const [isSavingNotes, setIsSavingNotes] = useState(false);
-	const [notesDraft, setNotesDraft] = useState("");
+	const [isJobDescriptionExpanded, setIsJobDescriptionExpanded] =
+		useState(false);
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -438,7 +468,6 @@ export function ApplicationDetailsPage() {
 				setError(null);
 				const data = await getApplication(id);
 				setApplication(data);
-				setNotesDraft(data.notes || "");
 			} catch (err) {
 				setError(
 					err instanceof Error
@@ -484,27 +513,6 @@ export function ApplicationDetailsPage() {
 		}
 	}
 
-	async function handleSaveNotes() {
-		if (!application) return;
-
-		try {
-			setError(null);
-			setIsSavingNotes(true);
-			const updatedApplication = await updateApplication(application.id, {
-				notes: notesDraft,
-			});
-			setApplication(updatedApplication);
-			setNotesDraft(updatedApplication.notes || "");
-			window.dispatchEvent(new Event("applications:changed"));
-		} catch (err) {
-			setError(
-				err instanceof Error ? err.message : "Failed to save notes",
-			);
-		} finally {
-			setIsSavingNotes(false);
-		}
-	}
-
 	async function handleMarkNextStatus(nextStatus: ApplicationStatus) {
 		if (!application) return;
 
@@ -523,13 +531,6 @@ export function ApplicationDetailsPage() {
 					: "Failed to update application",
 			);
 		}
-	}
-
-	function confirmDiscardNotes() {
-		if (!application) return;
-
-		setNotesDraft(application.notes || "");
-		setIsDiscardNotesModalOpen(false);
 	}
 
 	if (isLoading) {
@@ -559,7 +560,6 @@ export function ApplicationDetailsPage() {
 	}
 
 	const addedDate = formatShortDate(application.createdAt);
-	const notesHaveChanges = notesDraft !== (application.notes || "");
 	const nextStatus = getNextStatus(application.status);
 	const timelineTransitions = getTimelineTransitions(application);
 	const isLocalApplication = isLocalApplicationId(application.id);
@@ -572,6 +572,14 @@ export function ApplicationDetailsPage() {
 		currentStageIndex === -1
 			? []
 			: STATUS_ADVANCE_ORDER.slice(currentStageIndex + 1);
+	const visibleJobDescriptionSections = getVisibleJobDescriptionSections(
+		application,
+		isJobDescriptionExpanded,
+	);
+	const jobDescriptionSectionCount = JOB_DESCRIPTION_SECTIONS.filter(
+		(section) =>
+			(application.jobDescription?.[section.key] ?? []).length > 0,
+	).length;
 
 	return (
 		<section className="application-details-page grid min-w-0 max-w-full gap-6 overflow-x-hidden">
@@ -688,6 +696,7 @@ export function ApplicationDetailsPage() {
 						{application.jobUrl && (
 							<ButtonLink
 								to={application.jobUrl}
+								tone="link"
 								target="_blank"
 								rel="noreferrer"
 								className="w-full sm:w-auto"
@@ -699,7 +708,6 @@ export function ApplicationDetailsPage() {
 
 						<ButtonLink
 							to={`/applications/${application.id}/edit`}
-							tone="neutral"
 							icon={<PencilLine size={16} strokeWidth={2.5} />}
 							className="w-full sm:w-auto"
 						>
@@ -739,7 +747,7 @@ export function ApplicationDetailsPage() {
 			</article>
 
 			<div className="grid min-w-0 max-w-full items-start gap-5 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-				<article className="application-detail-panel min-w-0 max-w-full rounded-xl border border-slate-200 bg-white px-5 py-6 shadow-sm shadow-slate-200/50 transition-shadow duration-200 hover:shadow-md hover:shadow-slate-200/60 sm:px-6 sm:py-7 xl:row-start-1 ">
+				<article className="application-detail-panel min-w-0 max-w-full rounded-xl border border-slate-200 bg-white px-5 py-6 shadow-sm shadow-slate-200/50 transition-shadow duration-200 hover:shadow-md hover:shadow-slate-200/60 sm:px-6 sm:py-7 xl:row-start-2 ">
 					<h3 className="flex items-center gap-2.5 text-lg font-bold text-slate-950">
 						<span className="application-detail-icon grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-50 text-teal-600">
 							<BriefcaseBusiness size={16} strokeWidth={2.4} />
@@ -797,6 +805,12 @@ export function ApplicationDetailsPage() {
 							{formatDate(application.followUpAt)}
 						</DetailField>
 
+						<DetailField icon={Timer} label="Hours" accent="cyan">
+							{application.hoursPerWeek
+								? `${application.hoursPerWeek} hours/week`
+								: "Not specified"}
+						</DetailField>
+
 						<DetailField
 							icon={PoundSterling}
 							label="Salary Range"
@@ -805,61 +819,111 @@ export function ApplicationDetailsPage() {
 						>
 							{application.salary || "Not specified"}
 						</DetailField>
+
+						<DetailField
+							icon={Hash}
+							label="Reference ID"
+							accent="violet"
+							className="col-span-2 sm:col-span-1"
+						>
+							{application.jobReferenceId || "Not specified"}
+						</DetailField>
 					</dl>
 				</article>
 
-				<article className="application-detail-panel grid min-w-0 max-w-full gap-5 overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/50 transition-shadow duration-200 hover:shadow-md hover:shadow-slate-200/60 sm:p-6 xl:row-start-2">
+				<article className="application-detail-panel grid min-w-0 max-w-full gap-5 overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/50 transition-shadow duration-200 hover:shadow-md hover:shadow-slate-200/60 sm:p-6 xl:row-start-3">
 					<div className="flex flex-wrap items-center justify-between gap-2">
 						<h3 className="flex items-center gap-2.5 text-lg font-bold text-slate-950">
 							<span className="application-detail-icon grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-600">
 								<FileText size={16} strokeWidth={2.4} />
 							</span>
-							Private Notes
+							Notes
 						</h3>
-						<span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400">
-							<Lock size={13} strokeWidth={2.5} />
-							Only visible to you
-						</span>
 					</div>
 
-					<Textarea
-						value={notesDraft}
-						onChange={(event) => setNotesDraft(event.target.value)}
-						placeholder="Add notes about the role, required skills, or interview prep..."
-						className="min-h-56"
-					/>
-
-					<div className="flex min-w-0 flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-						<p className="text-xs font-semibold text-slate-400">
-							{notesDraft.length.toLocaleString()} characters
-						</p>
-
-						<div className="flex min-w-0 flex-col-reverse gap-3 sm:flex-row">
-							{notesHaveChanges && (
-								<Button
-									onClick={() =>
-										setIsDiscardNotesModalOpen(true)
-									}
-									disabled={isSavingNotes}
-									variant="secondary"
-								>
-									Discard Changes
-								</Button>
-							)}
-
-							<Button
-								onClick={handleSaveNotes}
-								disabled={isSavingNotes || !notesHaveChanges}
-								variant="primary"
-								isLoading={isSavingNotes}
-							>
-								{isSavingNotes ? "Saving..." : "Save Notes"}
-							</Button>
-						</div>
+					<div className="max-h-60 overflow-y-auto rounded-lg border border-slate-100 bg-slate-50 p-4 text-sm font-medium leading-7 text-slate-700">
+						{application.notes ? (
+							<p className="whitespace-pre-wrap">
+								{application.notes}
+							</p>
+						) : (
+							<p className="text-slate-400">
+								No notes have been added for this application.
+							</p>
+						)}
 					</div>
+
+					<p className="text-xs font-semibold text-slate-400">
+						{(application.notes || "").length.toLocaleString()}{" "}
+						characters
+					</p>
 				</article>
 
-				<article className="application-detail-panel flex min-w-0 max-w-full flex-col rounded-xl border border-slate-200 bg-white px-5 py-6 shadow-sm shadow-slate-200/50 transition-shadow duration-200 hover:shadow-md hover:shadow-slate-200/60 sm:px-6 sm:py-7 row-start-2 xl:row-span-2">
+				{hasJobDescription(application) && (
+					<article className="application-detail-panel grid min-w-0 max-w-full gap-5 overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/50 transition-shadow duration-200 hover:shadow-md hover:shadow-slate-200/60 sm:p-6 xl:col-start-1 xl:col-span-2 xl:row-start-1">
+						<div className="flex  items-center justify-between gap-3">
+							<h3 className="flex items-center gap-2.5 text-lg font-bold text-slate-950">
+								<span className="application-detail-icon grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-emerald-50 text-emerald-600">
+									<ListChecks size={16} strokeWidth={2.4} />
+								</span>
+								Job Description
+							</h3>
+							{jobDescriptionSectionCount > 2 && (
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									onClick={() =>
+										setIsJobDescriptionExpanded(
+											(value) => !value,
+										)
+									}
+								>
+									{isJobDescriptionExpanded ? (
+										<PanelTopClose
+											size={15}
+											strokeWidth={2.5}
+										/>
+									) : (
+										<PanelTopOpen
+											size={15}
+											strokeWidth={2.5}
+										/>
+									)}
+								</Button>
+							)}
+						</div>
+
+						<div className="grid grid-cols-3 gap-5">
+							{visibleJobDescriptionSections.map((section) => (
+								<section
+									key={section.key}
+									className="rounded-lg border border-slate-100 bg-slate-50 p-4"
+								>
+									<h4 className="text-sm font-extrabold text-slate-950">
+										{section.title}
+									</h4>
+									<ul className="mt-3 grid gap-2 text-sm font-medium leading-6 text-slate-600">
+										{section.items.map((item, index) => (
+											<li
+												key={`${section.key}-${index}-${item}`}
+												className="flex gap-2"
+											>
+												<span
+													className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-(--app-accent)"
+													aria-hidden="true"
+												/>
+												<span>{item}</span>
+											</li>
+										))}
+									</ul>
+								</section>
+							))}
+						</div>
+					</article>
+				)}
+
+				<article className="application-detail-panel flex min-w-0 max-w-full flex-col rounded-xl border border-slate-200 bg-white px-5 py-6 shadow-sm shadow-slate-200/50 transition-shadow duration-200 hover:shadow-md hover:shadow-slate-200/60 sm:px-6 sm:py-7 xl:row-start-2 xl:row-span-2">
 					<h3 className="flex items-center gap-2.5 text-lg font-bold text-slate-950">
 						<span className="application-detail-icon grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-violet-50 text-violet-600">
 							<MessageSquare size={16} strokeWidth={2.4} />
@@ -994,15 +1058,6 @@ export function ApplicationDetailsPage() {
 				isProcessing={isDeleting}
 				onCancel={() => setIsDeleteModalOpen(false)}
 				onConfirm={confirmDelete}
-			/>
-
-			<ConfirmationModal
-				isOpen={isDiscardNotesModalOpen}
-				title="Discard note changes?"
-				description="Your unsaved private notes will be reset to the last saved version."
-				confirmLabel="Discard changes"
-				onCancel={() => setIsDiscardNotesModalOpen(false)}
-				onConfirm={confirmDiscardNotes}
 			/>
 		</section>
 	);
