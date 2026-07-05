@@ -262,17 +262,17 @@ export function DashboardPage() {
 	return (
 		<section className="grid gap-6 text-slate-950">
 			{dashboard.isOffline && (
-				<section className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm shadow-amber-100/50">
+				<section className="dashboard-offline-banner rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm shadow-amber-100/50">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 						<div className="flex items-start gap-3">
-							<span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-white text-amber-600 ring-1 ring-amber-200">
+							<span className="dashboard-offline-icon grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-white text-amber-600 ring-1 ring-amber-200">
 								<WifiOff size={18} strokeWidth={2.5} />
 							</span>
 							<div>
-								<p className="font-extrabold text-amber-950">
+								<p className="dashboard-offline-title font-extrabold text-amber-950">
 									Showing browser-saved data
 								</p>
-								<p className="mt-1 text-sm font-medium text-amber-800">
+								<p className="dashboard-offline-copy mt-1 text-sm font-medium text-amber-800">
 									The database is not reachable. You can keep
 									adding applications; new local entries will
 									sync when the backend responds again.
@@ -282,7 +282,7 @@ export function DashboardPage() {
 						<button
 							type="button"
 							onClick={loadDashboard}
-							className="inline-flex items-center justify-center gap-2 rounded-lg border border-amber-200 bg-white px-4 py-2 text-sm font-bold text-amber-900 transition hover:bg-amber-100"
+							className="dashboard-offline-action inline-flex items-center justify-center gap-2 rounded-lg border border-amber-200 bg-white px-4 py-2 text-sm font-bold text-amber-900 transition hover:bg-amber-100"
 						>
 							<RefreshCw size={16} strokeWidth={2.5} />
 							Retry
@@ -504,7 +504,7 @@ export function DashboardPage() {
 							Applications you may need to chase soon.
 						</p>
 					</div>
-					<span className="app-accent-surface app-accent-text app-accent-ring rounded-md px-2.5 py-1 text-xs font-extrabold ring-1">
+					<span className="app-accent-surface app-accent-text app-accent-ring rounded-md px-2.5 py-1 text-xs font-extrabold ring-1 text-end">
 						{dashboard.upcomingFollowUpCount} due
 					</span>
 				</div>

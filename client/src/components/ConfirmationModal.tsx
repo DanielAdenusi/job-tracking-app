@@ -204,7 +204,8 @@ export function ConfirmationModal({
 					<Button
 						onClick={onConfirm}
 						disabled={isProcessing}
-						variant={isDanger ? "danger" : "primary"}
+						variant="primary"
+						tone={isDanger ? "danger" : "accent"}
 						className="cursor-pointer"
 					>
 						{isProcessing ? "Working..." : confirmLabel}

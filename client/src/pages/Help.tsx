@@ -159,14 +159,14 @@ export function HelpPage() {
 							</div>
 
 							<div className="flex flex-col gap-3 sm:flex-row">
-								<ButtonLink to="/dashboard" variant="primary">
+								<ButtonLink
+									to="/dashboard"
+									variant="primary"
+									tone="accent"
+								>
 									Open dashboard
 								</ButtonLink>
-								<ButtonLink
-									to="/contact"
-									variant="secondary"
-									className="border-(--landing-line) bg-(--landing-control) text-(--landing-text)"
-								>
+								<ButtonLink to="/contact" variant="secondary">
 									Contact support
 								</ButtonLink>
 							</div>

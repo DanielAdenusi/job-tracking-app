@@ -5,7 +5,7 @@ import { Menu, Moon, Sun, X } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 import { useAccountSettings } from "../context/AccountSettingsContext";
 import { Logo } from "./ui/Logo";
-import { Button, ButtonLink } from "./ui/Button";
+import { ButtonLink } from "./ui/Button";
 import { useAnimatedDisclosure } from "../hooks/useAnimatedDisclosure";
 
 export function MarketingNav() {
@@ -71,7 +71,7 @@ export function MarketingNav() {
 					aria-label="JobMarkr home"
 					variant="ghost"
 				>
-					<Logo size={40} hasTitle hideTitleOnMobile />
+					<Logo size={32} hasTitle hideTitleOnMobile />
 				</ButtonLink>
 
 				<nav className="hidden items-center gap-8 text-sm font-bold text-(--landing-muted) md:flex">
@@ -109,7 +109,7 @@ export function MarketingNav() {
 								user ? "hidden" : "sm:hidden font-bold text-sm"
 							}
 						>
-							{isDark ? "Light Mode" : "Dark Mode"}
+							{isDark ? "Light" : "Dark"}
 						</span>
 					</button>
 
@@ -117,7 +117,8 @@ export function MarketingNav() {
 						<ButtonLink
 							to="/dashboard"
 							variant="primary"
-							className="hidden md:inline-flex"
+							className="max-sm:hidden"
+							tone="accent"
 						>
 							Open app
 						</ButtonLink>
@@ -126,6 +127,7 @@ export function MarketingNav() {
 							<ButtonLink
 								to="/login"
 								variant="secondary"
+								tone="accent"
 								className="hidden text-(--landing-text) md:inline-flex"
 							>
 								Log in
@@ -133,6 +135,7 @@ export function MarketingNav() {
 							<ButtonLink
 								to="/signup"
 								variant="primary"
+								tone="accent"
 								className="hidden md:inline-flex"
 							>
 								Sign up
@@ -207,24 +210,32 @@ export function MarketingNav() {
 						</nav>
 
 						<div className="mt-auto grid gap-3 border-t border-(--landing-line) p-5">
-							<Button
-								variant="secondary"
+							<button
+								type="button"
 								onClick={() => void toggleTheme()}
 								disabled={isLoadingSettings}
-								className="border-(--landing-line) bg-(--landing-control) text-(--landing-text)"
+								className="inline-flex items-center justify-center gap-2 transition disabled:cursor-not-allowed disabled:opacity-40 rounded-lg font-bold border hover:shadow-sm hover:-translate-y-0.5 h-10 px-4 text-sm hover:bg-slate-50 border-(--landing-line) bg-(--landing-control) text-(--landing-text) hover:border-(--landing-accent)"
+								aria-label={
+									isDark ? "Use light mode" : "Use dark mode"
+								}
+								title={
+									isDark ? "Use light mode" : "Use dark mode"
+								}
 							>
 								{isDark ? (
-									<Sun size={17} strokeWidth={2.4} />
+									<Sun size={18} strokeWidth={2.4} />
 								) : (
-									<Moon size={17} strokeWidth={2.4} />
+									<Moon size={18} strokeWidth={2.4} />
 								)}
+
 								{isDark ? "Light mode" : "Dark mode"}
-							</Button>
+							</button>
 
 							{user ? (
 								<ButtonLink
 									to="/dashboard"
 									variant="primary"
+									tone="accent"
 									onClick={closeMenu}
 								>
 									Open app
@@ -234,14 +245,15 @@ export function MarketingNav() {
 									<ButtonLink
 										to="/login"
 										variant="secondary"
+										tone="accent"
 										onClick={closeMenu}
-										className="border-(--landing-line) bg-(--landing-control) text-(--landing-text)"
 									>
 										Log in
 									</ButtonLink>
 									<ButtonLink
 										to="/signup"
 										variant="primary"
+										tone="accent"
 										onClick={closeMenu}
 									>
 										Sign up

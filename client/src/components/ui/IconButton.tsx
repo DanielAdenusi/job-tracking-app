@@ -21,7 +21,7 @@ const baseClass =
 const baseVariantClass = "hover:shadow-sm hover:-translate-y-0.5";
 
 const variantClasses: Record<IconButtonVariant, string> = {
-	primary: `app-accent-button shadow-sm ${baseVariantClass}`,
+	primary: `button-accent shadow-sm ${baseVariantClass}`,
 	secondary: `border ${baseVariantClass}`,
 	ghost: baseVariantClass,
 };

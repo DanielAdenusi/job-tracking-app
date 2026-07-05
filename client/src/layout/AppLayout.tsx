@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, Outlet, useLocation, useNavigate } from "react-router";
+import {
+	Link,
+	Outlet,
+	useLocation,
+	useNavigate,
+	type LinkProps,
+} from "react-router";
 import {
 	LayoutDashboard,
 	BriefcaseBusiness,
@@ -315,12 +321,16 @@ function SidebarLink({
 	label,
 	icon: Icon,
 	end,
+	target,
+	rel,
 	onClick,
 }: {
 	to: string;
 	label: string;
 	icon?: LucideIcon;
 	end?: boolean;
+	target?: LinkProps["target"];
+	rel?: LinkProps["rel"];
 	onClick?: () => void;
 }) {
 	const location = useLocation();
@@ -342,6 +352,8 @@ function SidebarLink({
 	return (
 		<Link
 			to={to}
+			target={target}
+			rel={rel}
 			onClick={onClick}
 			className={[
 				sidebarItemBase,
@@ -548,6 +560,7 @@ function SidebarNavigation({
 				<nav className="flex flex-col gap-3">
 					<SidebarLink
 						to="/help"
+						target="_blank"
 						label="Help"
 						icon={CircleHelp}
 						onClick={onNavigate}
@@ -575,6 +588,7 @@ function HeaderActionLink({ action }: { action: HeaderAction }) {
 		<ButtonLink
 			to={action.to}
 			variant={isPrimary ? "primary" : "secondary"}
+			tone="neutral"
 		>
 			<Icon size={16} strokeWidth={2.5} />
 			<span>{action.label}</span>
@@ -748,24 +762,27 @@ export function AppLayout() {
 					</h1>
 				</div>
 
-				<Link
+				<ButtonLink
+					variant="ghost"
+					tone="neutral"
 					to="/account"
-					className="grid h-10 w-10 place-items-center rounded-full text-slate-500 "
+					size="sm"
+					className="grid place-items-center p-0! rounded-full"
 				>
 					{user?.photoURL ? (
 						<img
 							src={user.photoURL}
 							alt=""
-							className={`h-8 w-8 rounded-full object-cover ${isMobile && isAccountPage && "app-accent-ring ring-2 shadow-sm"}`}
+							className={`h-8 w-8 object-cover rounded-full ${isMobile && isAccountPage ? "app-accent-ring ring-3 shadow-sm" : ""}`}
 						/>
 					) : (
 						<UserCircle
 							size={32}
 							strokeWidth={2}
-							className={`${isMobile && isAccountPage && "app-accent-text"}`}
+							className={`${isMobile && isAccountPage ? "app-accent-text" : ""}`}
 						/>
 					)}
-				</Link>
+				</ButtonLink>
 			</header>
 
 			{isMobileNavRendered && (
@@ -791,26 +808,22 @@ export function AppLayout() {
 						].join(" ")}
 					>
 						<div className="flex h-20 items-center justify-between border-b border-slate-200 px-6">
-							<div className="flex min-w-0 items-center gap-3">
-								<div className="app-accent-bg grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-black text-white">
-									JT
-								</div>
+							<ButtonLink
+								variant="ghost"
+								to={"/"}
+								className="flex items-center gap-2"
+							>
+								<Logo hasTitle size={24} />
+							</ButtonLink>
 
-								<div className="min-w-0">
-									<p className="truncate text-sm font-black text-slate-950">
-										{APP_NAME}
-									</p>
-								</div>
-							</div>
-
-							<button
+							<Button
+								variant="ghost"
 								type="button"
 								onClick={closeMobileNav}
 								aria-label="Close navigation"
-								className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-slate-500 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-white hover:text-slate-950 hover:shadow-sm hover:ring-1 hover:ring-slate-200"
-							>
-								<X size={22} strokeWidth={2.5} />
-							</button>
+								className="p-0"
+								icon={<X size={22} strokeWidth={2.5} />}
+							></Button>
 						</div>
 
 						<div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 py-6">

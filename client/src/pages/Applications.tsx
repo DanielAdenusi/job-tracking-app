@@ -13,9 +13,13 @@ import {
 	CalendarDays,
 	ChevronDown,
 	Clock3,
+	EllipsisVertical,
 	ExternalLink,
 	MapPin,
-	Pencil,
+	PanelTopClose,
+	PanelTopOpen,
+	PencilLine,
+	Plus,
 	RefreshCw,
 	SlidersHorizontal,
 	Trash2,
@@ -54,6 +58,8 @@ import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { loadLocalSettings, tableRowOptions } from "../lib/accountSettings";
 
 import type { Application } from "../types/application";
+
+import "./Applications.css";
 
 type StatusFilter = "all" | ApplicationStatus;
 type PriorityFilter = "all" | ApplicationPriority;
@@ -204,7 +210,7 @@ function ApplicationsListSkeleton() {
 	return (
 		<div aria-busy="true">
 			<div className="sr-only">Loading applications...</div>
-			<div className="flex flex-col gap-1 border-b border-slate-200 bg-slate-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+			<div className="application-list-band flex flex-col gap-1 border-b border-slate-200 bg-slate-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
 				<div className="h-4 w-48 animate-pulse rounded bg-slate-200" />
 				<div className="h-4 w-24 animate-pulse rounded bg-slate-200" />
 			</div>
@@ -260,6 +266,12 @@ export function ApplicationsPage() {
 	const [areStatsOpen, setAreStatsOpen] = useState(false);
 	const [isFilterPopoverOpen, setIsFilterPopoverOpen] = useState(false);
 	const filterPopoverRef = useRef<HTMLDivElement | null>(null);
+	const [isToolbarMenuOpen, setIsToolbarMenuOpen] = useState(false);
+	const toolbarMenuRef = useRef<HTMLDivElement | null>(null);
+	const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(
+		null,
+	);
+	const applicationActionMenuRef = useRef<HTMLDivElement | null>(null);
 
 	const [searchParams, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
@@ -461,6 +473,36 @@ export function ApplicationsPage() {
 		};
 	}, [isFilterPopoverOpen]);
 
+	useEffect(() => {
+		if (!isToolbarMenuOpen && !openActionMenuId) return;
+
+		function handlePointerDown(event: PointerEvent) {
+			if (!(event.target instanceof Node)) return;
+
+			if (
+				isToolbarMenuOpen &&
+				toolbarMenuRef.current &&
+				!toolbarMenuRef.current.contains(event.target)
+			) {
+				setIsToolbarMenuOpen(false);
+			}
+
+			if (
+				openActionMenuId &&
+				applicationActionMenuRef.current &&
+				!applicationActionMenuRef.current.contains(event.target)
+			) {
+				setOpenActionMenuId(null);
+			}
+		}
+
+		document.addEventListener("pointerdown", handlePointerDown);
+
+		return () => {
+			document.removeEventListener("pointerdown", handlePointerDown);
+		};
+	}, [isToolbarMenuOpen, openActionMenuId]);
+
 	async function handleStatusChange(
 		applicationId: string,
 		nextStatus: ApplicationStatus,
@@ -615,9 +657,9 @@ export function ApplicationsPage() {
 
 	return (
 		<section className="grid gap-5">
-			<div className="rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/40">
+			<div className="application-list-panel rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/40">
 				<div className="border-b border-slate-200 p-4 sm:p-5">
-					<div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+					<div className="flex flex-row gap-4 items-center justify-between">
 						<div>
 							<p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
 								Application list
@@ -628,34 +670,66 @@ export function ApplicationsPage() {
 							</h2>
 						</div>
 
-						<div className="flex flex-wrap items-center gap-2">
-							<div ref={filterPopoverRef} className="relative">
+						<div className="flex items-center justify-end gap-2">
+							<div className="hidden items-center gap-2 md:flex">
 								<Button
-									variant="secondary"
+									variant="ghost"
 									icon={
-										<SlidersHorizontal
+										<ChevronDown
 											size={16}
 											strokeWidth={2.5}
+											className={[
+												"transition-transform",
+												areStatsOpen
+													? "rotate-180"
+													: "",
+											].join(" ")}
 										/>
 									}
+									iconPosition="end"
 									onClick={() =>
-										setIsFilterPopoverOpen((open) => !open)
+										setAreStatsOpen((isOpen) => !isOpen)
 									}
-									aria-expanded={isFilterPopoverOpen}
-									aria-controls="applications-filter-popover"
+									aria-expanded={areStatsOpen}
+									aria-controls="applications-stats-panel"
 								>
-									Filters
-									{activeFilterCount > 0 && (
-										<span className="rounded-full px-2 text-sm font-bold app-accent-text">
-											{activeFilterCount}
-										</span>
-									)}
+									Stats
 								</Button>
+							</div>
+
+							<div ref={filterPopoverRef} className="relative">
+								<div className="hidden md:block">
+									<Button
+										variant="secondary"
+										icon={
+											<SlidersHorizontal
+												size={16}
+												strokeWidth={2.5}
+											/>
+										}
+										onClick={() =>
+											setIsFilterPopoverOpen(
+												(open) => !open,
+											)
+										}
+										aria-expanded={isFilterPopoverOpen}
+										aria-controls="applications-filter-popover"
+									>
+										<span className="hidden sm:inline">
+											Filter
+										</span>
+										{activeFilterCount > 0 && (
+											<span className="rounded-full px-2 text-sm font-bold app-accent-text">
+												{activeFilterCount}
+											</span>
+										)}
+									</Button>
+								</div>
 
 								{isFilterPopoverOpen && (
 									<div
 										id="applications-filter-popover"
-										className="absolute right-0 z-30 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-200/70"
+										className="application-filter-popover absolute right-0 z-30 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-200/70"
 									>
 										<div className="grid gap-3">
 											<label className="grid gap-2">
@@ -803,27 +877,111 @@ export function ApplicationsPage() {
 								)}
 							</div>
 
-							<Button
-								variant="ghost"
-								icon={
-									<ChevronDown
-										size={16}
-										strokeWidth={2.5}
-										className={[
-											"transition-transform",
-											areStatsOpen ? "rotate-180" : "",
-										].join(" ")}
-									/>
-								}
-								iconPosition="end"
-								onClick={() =>
-									setAreStatsOpen((isOpen) => !isOpen)
-								}
-								aria-expanded={areStatsOpen}
-								aria-controls="applications-stats-panel"
+							<div className="hidden md:block">
+								<ButtonLink
+									to="/applications/new"
+									variant="primary"
+									tone="accent"
+									icon={<Plus size={17} strokeWidth={2.5} />}
+								>
+									<span className="inline">
+										Add Application
+									</span>
+								</ButtonLink>
+							</div>
+
+							<div
+								ref={toolbarMenuRef}
+								className="relative md:hidden"
 							>
-								Stats
-							</Button>
+								<Button
+									icon={
+										<EllipsisVertical
+											size={17}
+											strokeWidth={2.5}
+										/>
+									}
+									iconPosition="end"
+									onClick={() =>
+										setIsToolbarMenuOpen((open) => !open)
+									}
+									aria-expanded={isToolbarMenuOpen}
+									aria-controls="applications-toolbar-menu"
+								></Button>
+
+								{isToolbarMenuOpen && (
+									<div
+										id="applications-toolbar-menu"
+										className="mobile-more-menu absolute right-0 z-40 mt-2 grid w-56 gap-1 rounded-xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/70"
+									>
+										<Button
+											variant="ghost"
+											align="start"
+											onClick={() => {
+												setAreStatsOpen(
+													(isOpen) => !isOpen,
+												);
+												setIsToolbarMenuOpen(false);
+											}}
+											icon={
+												areStatsOpen ? (
+													<PanelTopClose
+														size={16}
+														strokeWidth={2.5}
+													/>
+												) : (
+													<PanelTopOpen
+														size={16}
+														strokeWidth={2.5}
+													/>
+												)
+											}
+										>
+											Stats
+										</Button>
+
+										<Button
+											variant="ghost"
+											align="start"
+											onClick={() => {
+												setIsFilterPopoverOpen(true);
+												setIsToolbarMenuOpen(false);
+											}}
+											icon={
+												<SlidersHorizontal
+													size={16}
+													strokeWidth={2.5}
+												/>
+											}
+										>
+											Filter
+											{activeFilterCount > 0 && (
+												<span className="rounded-full px-2 text-xs font-black app-accent-text">
+													{activeFilterCount}
+												</span>
+											)}
+										</Button>
+
+										<ButtonLink
+											to="/applications/new"
+											variant="primary"
+											tone="accent"
+											align="start"
+											onClick={() =>
+												setIsToolbarMenuOpen(false)
+											}
+											icon={
+												<Plus
+													size={17}
+													strokeWidth={2.5}
+												/>
+											}
+										>
+											Add application
+										</ButtonLink>
+									</div>
+								)}
+							</div>
 						</div>
 					</div>
 
@@ -836,7 +994,7 @@ export function ApplicationsPage() {
 								<div
 									key={item.label}
 									className={[
-										"rounded-lg border px-3 py-2 ring-1",
+										"application-stat-card rounded-lg border px-3 py-2 ring-1",
 										item.className,
 									].join(" ")}
 								>
@@ -940,6 +1098,7 @@ export function ApplicationsPage() {
 							<ButtonLink
 								to="/applications/new"
 								variant="primary"
+								tone="accent"
 								className="mt-2"
 							>
 								Add application
@@ -974,7 +1133,7 @@ export function ApplicationsPage() {
 
 				{!isLoading && filteredApplications.length > 0 && (
 					<div>
-						<div className="flex flex-col gap-1 border-b border-slate-200 bg-slate-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+						<div className="application-list-band flex flex-col gap-1 border-b border-slate-200 bg-slate-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
 							<p className="text-sm font-semibold text-slate-500">
 								Showing {listStart}-{listEnd} of{" "}
 								{filteredApplications.length} applications
@@ -1005,7 +1164,7 @@ export function ApplicationsPage() {
 												application.id,
 											)
 										}
-										className="cursor-pointer bg-white p-4 transition duration-200 ease-out hover:bg-slate-50/80 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 sm:p-5"
+										className="application-list-row cursor-pointer bg-white p-4 transition duration-200 ease-out hover:bg-slate-50/80 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 sm:p-5"
 									>
 										<div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(15rem,auto)_auto] xl:items-center">
 											<div className="min-w-0 rounded-lg outline-none transition focus-visible:ring-4 focus-visible:ring-blue-100">
@@ -1118,7 +1277,7 @@ export function ApplicationsPage() {
 												</span>
 											</div>
 
-											<div className="flex flex-col gap-3 sm:flex-row sm:items-center xl:justify-end">
+											<div className="flex justify-end gap-3 sm:items-center">
 												<Select
 													value={application.status}
 													onClick={stopRowNavigation}
@@ -1137,7 +1296,7 @@ export function ApplicationsPage() {
 														)
 													}
 													aria-label={`Update status for ${application.role}`}
-													className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-40"
+													className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60 xl:w-40"
 												>
 													{APPLICATION_STATUSES.map(
 														(status) => (
@@ -1155,7 +1314,7 @@ export function ApplicationsPage() {
 													)}
 												</Select>
 
-												<div className="flex w-full items-center gap-2 sm:w-auto">
+												<div className="hidden w-full items-center justify-end gap-2 sm:flex sm:w-auto">
 													<span
 														aria-hidden="true"
 														className="hidden h-6 w-px bg-slate-200 xl:inline-block"
@@ -1198,7 +1357,7 @@ export function ApplicationsPage() {
 															stopRowNavigation
 														}
 													>
-														<Pencil
+														<PencilLine
 															size={17}
 															strokeWidth={2.25}
 														/>
@@ -1229,6 +1388,157 @@ export function ApplicationsPage() {
 														/>
 													</IconButton>
 												</div>
+
+												<div className="flex justify-end sm:hidden">
+													<div
+														ref={
+															openActionMenuId ===
+															application.id
+																? applicationActionMenuRef
+																: undefined
+														}
+														className="relative"
+													>
+														<Button
+															variant="secondary"
+															icon={
+																<EllipsisVertical
+																	size={17}
+																	strokeWidth={
+																		2.5
+																	}
+																/>
+															}
+															iconPosition="end"
+															onClick={(
+																event,
+															) => {
+																stopRowNavigation(
+																	event,
+																);
+																setOpenActionMenuId(
+																	(
+																		currentId,
+																	) =>
+																		currentId ===
+																		application.id
+																			? null
+																			: application.id,
+																);
+															}}
+															onKeyDown={
+																stopRowNavigation
+															}
+															aria-expanded={
+																openActionMenuId ===
+																application.id
+															}
+															aria-controls={`application-actions-${application.id}`}
+														></Button>
+
+														{openActionMenuId ===
+															application.id && (
+															<div
+																id={`application-actions-${application.id}`}
+																className="mobile-more-menu absolute right-0 z-30 mt-2 grid w-64 gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/70"
+																onClick={
+																	stopRowNavigation
+																}
+																onKeyDown={
+																	stopRowNavigation
+																}
+															>
+																{application.jobUrl && (
+																	<ButtonLink
+																		to={
+																			application.jobUrl
+																		}
+																		target="_blank"
+																		rel="noreferrer"
+																		variant="ghost"
+																		tone="link"
+																		align="start"
+																		onClick={() =>
+																			setOpenActionMenuId(
+																				null,
+																			)
+																		}
+																		icon={
+																			<ExternalLink
+																				size={
+																					16
+																				}
+																				strokeWidth={
+																					2.5
+																				}
+																			/>
+																		}
+																		iconPosition="start"
+																	>
+																		Open
+																		post
+																	</ButtonLink>
+																)}
+
+																<ButtonLink
+																	to={`/applications/${application.id}/edit`}
+																	variant="ghost"
+																	tone="neutral"
+																	align="start"
+																	onClick={() =>
+																		setOpenActionMenuId(
+																			null,
+																		)
+																	}
+																	icon={
+																		<PencilLine
+																			size={
+																				16
+																			}
+																			strokeWidth={
+																				2.5
+																			}
+																		/>
+																	}
+																	iconPosition="start"
+																>
+																	Edit
+																</ButtonLink>
+
+																<Button
+																	variant="primary"
+																	tone="danger"
+																	align="start"
+																	disabled={
+																		isDeletingId ===
+																		application.id
+																	}
+																	onClick={() => {
+																		setOpenActionMenuId(
+																			null,
+																		);
+																		setDeleteTarget(
+																			application,
+																		);
+																	}}
+																	icon={
+																		<Trash2
+																			size={
+																				16
+																			}
+																			strokeWidth={
+																				2.5
+																			}
+																		/>
+																	}
+																	iconPosition="start"
+																>
+																	Delete
+																</Button>
+															</div>
+														)}
+													</div>
+												</div>
 											</div>
 										</div>
 									</article>
@@ -1236,7 +1546,7 @@ export function ApplicationsPage() {
 							})}
 						</div>
 
-						<div className="flex flex-row items-center justify-between gap-3 border-t border-slate-200 bg-slate-50/70 p-4">
+						<div className="application-list-band flex flex-row items-center justify-between gap-3 border-t border-slate-200 bg-slate-50/70 p-4">
 							<Button
 								disabled={currentPage <= 1}
 								onClick={() =>

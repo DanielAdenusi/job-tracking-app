@@ -474,6 +474,7 @@ export function ApplicationForm({
 				<Button
 					type="submit"
 					variant="primary"
+					tone="accent"
 					size="lg"
 					disabled={isSubmitting}
 				>

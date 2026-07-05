@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
 import {
 	Building2,
 	CalendarDays,
+	EllipsisVertical,
 	GripVertical,
 	Plus,
 	RefreshCw,
+	SlidersHorizontal,
 	WifiOff,
 } from "lucide-react";
 
@@ -20,7 +22,7 @@ import {
 } from "../services/applicationOfflineStore";
 import { EmptyState } from "../components/ui/Surface";
 import { SearchInput, Select } from "../components/ui/FormControls";
-import { ButtonLink } from "../components/ui/Button";
+import { Button, ButtonLink } from "../components/ui/Button";
 
 import {
 	APPLICATION_STATUSES,
@@ -34,6 +36,8 @@ import { applicationPriorityBadgeClasses } from "../constants/applicationPriorit
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 
 import type { Application } from "../types/application";
+
+import "./Applications.css";
 
 const statusDescriptions: Record<ApplicationStatus, string> = {
 	wishlist: "Roles you are interested in.",
@@ -80,14 +84,13 @@ function KanbanSkeleton() {
 		>
 			<div className="sr-only">Loading Kanban board...</div>
 
-			<div className="shrink-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/40">
-				<div className="grid gap-4 xl:grid-cols-[minmax(240px,1fr)_220px_200px_auto] xl:items-center">
+			{/* <div className="shrink-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/40">
+				<div className="grid gap-4 xl:grid-cols-[minmax(240px,1fr)_auto_auto] xl:items-center">
 					<div className="h-10 animate-pulse rounded-lg bg-slate-100" />
-					<div className="h-10 animate-pulse rounded-lg bg-slate-100" />
-					<div className="h-10 animate-pulse rounded-lg bg-slate-100" />
-					<div className="h-10 w-36 animate-pulse rounded-lg bg-slate-200" />
+					<div className="h-10 w-25 animate-pulse rounded-lg bg-slate-100" />
+					<div className="h-10 w-42 animate-pulse rounded-lg bg-slate-200" />
 				</div>
-			</div>
+			</div> */}
 
 			<div className="-mx-2 min-h-0 flex-1 overflow-hidden px-2 pb-3">
 				<div className="grid h-full min-h-0 w-max auto-cols-73.5 grid-flow-col grid-rows-1 gap-4 pt-2">
@@ -120,7 +123,7 @@ function KanbanSkeleton() {
 								}).map((_, cardIndex) => (
 									<div
 										key={cardIndex}
-										className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-blue-100/50"
+										className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
 									>
 										<div className="flex items-center justify-between gap-3">
 											<div className="h-6 w-20 animate-pulse rounded-lg bg-slate-100" />
@@ -157,7 +160,17 @@ export function KanbanPage() {
 	const [boardSearch, setBoardSearch] = useState("");
 	const [companyFilter, setCompanyFilter] = useState("all");
 	const [boardSort, setBoardSort] = useState<BoardSort>("updated_desc");
+
+	const [isFilterPopoverOpen, setIsFilterPopoverOpen] = useState(false);
+	const filterPopoverRef = useRef<HTMLDivElement | null>(null);
+	const [isToolbarMenuOpen, setIsToolbarMenuOpen] = useState(false);
+	const toolbarMenuRef = useRef<HTMLDivElement | null>(null);
 	const debouncedBoardSearch = useDebouncedValue(boardSearch, 250);
+
+	const activeFilterCount = [
+		companyFilter !== "all",
+		boardSort !== "updated_desc",
+	].filter(Boolean).length;
 
 	const companyOptions = useMemo(() => {
 		return Array.from(
@@ -238,6 +251,48 @@ export function KanbanPage() {
 	useEffect(() => {
 		loadApplications();
 	}, []);
+
+	useEffect(() => {
+		if (!isFilterPopoverOpen) return;
+
+		function handlePointerDown(event: PointerEvent) {
+			const popover = filterPopoverRef.current;
+
+			if (
+				popover &&
+				event.target instanceof Node &&
+				!popover.contains(event.target)
+			) {
+				setIsFilterPopoverOpen(false);
+			}
+		}
+
+		document.addEventListener("pointerdown", handlePointerDown);
+
+		return () => {
+			document.removeEventListener("pointerdown", handlePointerDown);
+		};
+	}, [isFilterPopoverOpen]);
+
+	useEffect(() => {
+		if (!isToolbarMenuOpen) return;
+
+		function handlePointerDown(event: PointerEvent) {
+			if (
+				toolbarMenuRef.current &&
+				event.target instanceof Node &&
+				!toolbarMenuRef.current.contains(event.target)
+			) {
+				setIsToolbarMenuOpen(false);
+			}
+		}
+
+		document.addEventListener("pointerdown", handlePointerDown);
+
+		return () => {
+			document.removeEventListener("pointerdown", handlePointerDown);
+		};
+	}, [isToolbarMenuOpen]);
 
 	async function moveApplication(
 		applicationId: string,
@@ -327,12 +382,205 @@ export function KanbanPage() {
 		setDragOverStatus(null);
 	}
 
-	if (isLoading) {
-		return <KanbanSkeleton />;
+	function resetFilters() {
+		setBoardSearch("");
+		setCompanyFilter("all");
+		setBoardSort("updated_desc");
+		setIsFilterPopoverOpen(false);
 	}
 
 	return (
 		<section className="flex h-full min-h-0 flex-col gap-6">
+			<div className="shrink-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/40">
+				<div className="grid gap-4 grid-cols-[1fr_auto]  xl:grid-cols-[minmax(240px,1fr)_auto_auto] xl:items-center">
+					<label>
+						<SearchInput
+							value={boardSearch}
+							onChange={setBoardSearch}
+							onClear={() => setBoardSearch("")}
+							placeholder="Search applications..."
+							className="font-medium"
+						/>
+					</label>
+
+					<div className="flex items-center justify-end gap-3">
+						<div ref={filterPopoverRef} className="relative">
+							<div className="hidden sm:block">
+								<Button
+									variant="secondary"
+									icon={
+										<SlidersHorizontal
+											size={16}
+											strokeWidth={2.5}
+										/>
+									}
+									onClick={() =>
+										setIsFilterPopoverOpen((open) => !open)
+									}
+									aria-expanded={isFilterPopoverOpen}
+									aria-controls="applications-filter-popover"
+								>
+									<span className="hidden sm:inline">
+										Filters
+									</span>
+									{activeFilterCount > 0 && (
+										<span className="rounded-full px-2 text-sm font-bold app-accent-text">
+											{activeFilterCount}
+										</span>
+									)}
+								</Button>
+							</div>
+
+							{isFilterPopoverOpen && (
+								<div
+									id="applications-filter-popover"
+									className="application-filter-popover absolute right-0 z-30 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-200/70"
+								>
+									<div className="grid gap-3">
+										<label className="grid gap-2">
+											<span className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+												Applications
+											</span>
+											<Select
+												value={boardSort}
+												onChange={(event) =>
+													setBoardSort(
+														event.target
+															.value as BoardSort,
+													)
+												}
+											>
+												<option value="updated_desc">
+													Sort by updated date
+												</option>
+												<option value="updated_asc">
+													Oldest updated
+												</option>
+												<option value="role_az">
+													Role A-Z
+												</option>
+											</Select>
+										</label>
+
+										<label className="grid gap-2">
+											<span className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+												Company
+											</span>
+											<Select
+												value={companyFilter}
+												onChange={(event) =>
+													setCompanyFilter(
+														event.target.value,
+													)
+												}
+											>
+												<option value="all">
+													Filter by company
+												</option>
+												{companyOptions.map(
+													(company) => (
+														<option
+															key={company}
+															value={company}
+														>
+															{company}
+														</option>
+													),
+												)}
+											</Select>
+										</label>
+										<Button
+											variant="ghost"
+											onClick={resetFilters}
+										>
+											Reset filters
+										</Button>
+									</div>
+								</div>
+							)}
+						</div>
+
+						<div className="hidden sm:block">
+							<ButtonLink
+								to="/applications/new"
+								variant="primary"
+								tone="accent"
+								icon={<Plus size={17} strokeWidth={2.5} />}
+							>
+								<span className="hidden sm:inline">
+									Add Application
+								</span>
+							</ButtonLink>
+						</div>
+
+						<div
+							ref={toolbarMenuRef}
+							className="relative sm:hidden"
+						>
+							<Button
+								variant="secondary"
+								icon={
+									<EllipsisVertical
+										size={17}
+										strokeWidth={2.5}
+									/>
+								}
+								iconPosition="end"
+								onClick={() =>
+									setIsToolbarMenuOpen((open) => !open)
+								}
+								aria-expanded={isToolbarMenuOpen}
+								aria-controls="kanban-toolbar-menu"
+							></Button>
+
+							{isToolbarMenuOpen && (
+								<div
+									id="kanban-toolbar-menu"
+									className="mobile-more-menu absolute right-0 z-40 mt-2 grid w-56 gap-1 rounded-xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/70"
+								>
+									<Button
+										variant="ghost"
+										tone="neutral"
+										align="start"
+										onClick={() => {
+											setIsFilterPopoverOpen(true);
+											setIsToolbarMenuOpen(false);
+										}}
+										icon={
+											<SlidersHorizontal
+												size={16}
+												strokeWidth={2.5}
+											/>
+										}
+									>
+										Filters
+										{activeFilterCount > 0 && (
+											<span className="rounded-full px-2 text-xs font-black app-accent-text">
+												{activeFilterCount}
+											</span>
+										)}
+									</Button>
+									<ButtonLink
+										to="/applications/new"
+										variant="primary"
+										tone="accent"
+										align="start"
+										onClick={() =>
+											setIsToolbarMenuOpen(false)
+										}
+										icon={
+											<Plus size={17} strokeWidth={2.5} />
+										}
+									>
+										Add application
+									</ButtonLink>
+								</div>
+							)}
+						</div>
+					</div>
+				</div>
+			</div>
+
 			{error && (
 				<div className="rounded-xl border border-amber-200 bg-amber-50 p-5 shadow-sm shadow-amber-100/50">
 					<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -396,7 +644,9 @@ export function KanbanPage() {
 				</div>
 			)}
 
-			{applications.length === 0 ? (
+			{isLoading ? (
+				<KanbanSkeleton />
+			) : applications.length === 0 ? (
 				<EmptyState>
 					<h3 className="text-lg font-extrabold">
 						No applications yet
@@ -417,71 +667,6 @@ export function KanbanPage() {
 				</EmptyState>
 			) : (
 				<>
-					<div className="shrink-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/40">
-						<div className="grid gap-4 xl:grid-cols-[minmax(240px,1fr)_220px_200px_auto] xl:items-center">
-							<label>
-								<SearchInput
-									value={boardSearch}
-									onChange={setBoardSearch}
-									onClear={() => setBoardSearch("")}
-									placeholder="Search applications..."
-									className="font-medium"
-								/>
-							</label>
-
-							<label>
-								<span className="sr-only">
-									Filter by company
-								</span>
-								<Select
-									value={companyFilter}
-									onChange={(event) =>
-										setCompanyFilter(event.target.value)
-									}
-								>
-									<option value="all">
-										Filter by company
-									</option>
-									{companyOptions.map((company) => (
-										<option key={company} value={company}>
-											{company}
-										</option>
-									))}
-								</Select>
-							</label>
-
-							<label>
-								<span className="sr-only">
-									Sort applications
-								</span>
-								<Select
-									value={boardSort}
-									onChange={(event) =>
-										setBoardSort(
-											event.target.value as BoardSort,
-										)
-									}
-								>
-									<option value="updated_desc">
-										Sort by updated date
-									</option>
-									<option value="updated_asc">
-										Oldest updated
-									</option>
-									<option value="role_az">Role A-Z</option>
-								</Select>
-							</label>
-
-							<ButtonLink
-								to="/applications/new"
-								variant="primary"
-							>
-								<Plus size={17} strokeWidth={2.5} />
-								Add Application
-							</ButtonLink>
-						</div>
-					</div>
-
 					<div className="-mx-2 min-h-0 flex-1 overflow-x-auto overflow-y-hidden px-2 pb-3">
 						<div className="grid h-full min-h-0 w-max auto-cols-73.5 grid-flow-col grid-rows-1 gap-4 pt-2">
 							{columns.map((column) => (
@@ -583,17 +768,17 @@ export function KanbanPage() {
 																		],
 																	].join(" ")}
 																>
-																		{formatOption(
-																			application.priority,
-																		)}
-																	</span>
-																	{isLocalApplicationId(
-																		application.id,
-																	) && (
-																		<span className="inline-flex h-6 items-center rounded-lg bg-amber-100 px-2 text-[0.65rem] font-bold text-amber-700 ring-1 ring-amber-200">
-																			Local
-																		</span>
+																	{formatOption(
+																		application.priority,
 																	)}
+																</span>
+																{isLocalApplicationId(
+																	application.id,
+																) && (
+																	<span className="inline-flex h-6 items-center rounded-lg bg-amber-100 px-2 text-[0.65rem] font-bold text-amber-700 ring-1 ring-amber-200">
+																		Local
+																	</span>
+																)}
 
 																<GripVertical
 																	size={17}

@@ -284,15 +284,20 @@ export function HomePage() {
 					</p>
 
 					<div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-						<ButtonLink to="/signup" variant="primary" size="lg">
+						<ButtonLink
+							to="/signup"
+							variant="primary"
+							tone="accent"
+							size="lg"
+						>
 							Start tracking
 							<ArrowRight size={17} strokeWidth={2.5} />
 						</ButtonLink>
 						<ButtonLink
 							to="/help"
 							variant="secondary"
+							tone="neutral"
 							size="lg"
-							className="border-(--landing-line) bg-(--landing-control) text-(--landing-text)"
 						>
 							How does it work?
 						</ButtonLink>
@@ -385,13 +390,19 @@ export function HomePage() {
 							of your progress.
 						</p>
 						<div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-							<ButtonLink to="/signup" variant="primary">
+							<ButtonLink
+								to="/signup"
+								variant="primary"
+								tone="accent"
+								size="lg"
+							>
 								Get started now
 							</ButtonLink>
 							<ButtonLink
 								to="/help"
 								variant="secondary"
-								className="border-(--landing-line) bg-(--landing-control) text-(--landing-text)"
+								tone="neutral"
+								size="lg"
 							>
 								Learn more
 							</ButtonLink>

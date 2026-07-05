@@ -936,10 +936,10 @@ export function AccountSettingsPage() {
 								role="tab"
 								aria-selected={isActive}
 								className={[
-									"border-b-2",
+									"border-b-2 ",
 									isActive
-										? "border-(--app-accent) app-accent-text"
-										: "border-transparent text-slate-500 hover:text-slate-900",
+										? "border-(--app-accent) app-accent-text font-bold"
+										: "border-transparent text-slate-500 hover:text-slate-900 font-medium",
 								].join(" ")}
 							>
 								{tab.label}
@@ -1350,7 +1350,7 @@ export function AccountSettingsPage() {
 						>
 							<Button
 								onClick={() => setAccountDialog("delete")}
-								variant="dangerSoft"
+								tone="danger"
 								icon={<Trash2 size={16} strokeWidth={2.4} />}
 							>
 								Delete account
@@ -1772,7 +1772,7 @@ export function AccountSettingsPage() {
 									onClick={() =>
 										setDangerAction("clear_applications")
 									}
-									variant="dangerSoft"
+									tone="danger"
 									icon={
 										<Trash2 size={16} strokeWidth={2.4} />
 									}

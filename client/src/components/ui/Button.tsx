@@ -2,14 +2,19 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { Link, type LinkProps } from "react-router";
 import { cn } from "./classes";
 import { Spinner } from "./Surface";
+import "./Button.css";
 
-type ButtonTone = "neutral" | "accent" | "danger" | "dangerSoft" | "link";
+type ButtonTone = "neutral" | "accent" | "danger" | "link";
 
-type ButtonStyleVariant = "primary" | "secondary" | "ghost" | "text";
-
-type ButtonVariant = ButtonStyleVariant | ButtonTone;
+type ButtonVariant = "primary" | "secondary" | "ghost" | "text";
 
 type ButtonSize = "sm" | "md" | "lg" | "inline";
+
+type IconPosition = "start" | "end";
+
+type ButtonAlign = "start" | "center" | "end";
+
+type ButtonType = "button" | "submit" | "reset";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 	variant?: ButtonVariant;
@@ -17,7 +22,8 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 	icon?: ReactNode;
 	tone?: ButtonTone;
 	isLoading?: boolean;
-	iconPosition?: "start" | "end";
+	iconPosition?: IconPosition;
+	align?: ButtonAlign;
 };
 
 type ButtonLinkProps = LinkProps & ButtonProps;
@@ -25,25 +31,17 @@ type ButtonLinkProps = LinkProps & ButtonProps;
 const baseVariantClass = "hover:shadow-sm hover:-translate-y-0.5";
 
 export const buttonVariantClasses: Record<ButtonVariant, string> = {
-	primary: `app-accent-button shadow-sm ${baseVariantClass}`,
-	secondary: `border ${baseVariantClass}`,
-	ghost: `!bg-transparent ${baseVariantClass}`,
-	text: `underline decoration-transparent hover:decoration-current`,
-	neutral: `border ${baseVariantClass}`,
-	accent: `border ${baseVariantClass}`,
-	link: `hover:ring-1 ${baseVariantClass}`,
-	danger: `border ${baseVariantClass}`,
-	dangerSoft: `border ${baseVariantClass}`,
+	primary: `button button-primary border shadow-sm ${baseVariantClass}`,
+	secondary: `button button-secondary border ${baseVariantClass}`,
+	ghost: `button button-ghost ${baseVariantClass}`,
+	text: `button button-text underline decoration-transparent hover:decoration-current`,
 };
 
 export const buttonToneClasses: Record<ButtonTone, string> = {
-	neutral:
-		"button-neutral bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-700 hover:ring-slate-200",
-	accent: "button-accent app-accent-text hover:bg-slate-50 ",
-	link: "button-link text-slate-400 border-blue-200 hover:bg-blue-50 hover:text-blue-600 hover:ring-blue-200",
-	danger: "button-danger text-red-400 border-red-200 hover:bg-red-50 hover:text-red-600 hover:ring-red-200",
-	dangerSoft:
-		"button-danger-soft text-red-400 border-red-200 hover:bg-red-50 hover:text-red-600 hover:ring-red-200",
+	neutral: "button-tone-neutral",
+	accent: "button-tone-accent",
+	link: "button-tone-link",
+	danger: "button-tone-danger",
 };
 
 export const buttonSizeClasses: Record<ButtonSize, string> = {
@@ -53,16 +51,16 @@ export const buttonSizeClasses: Record<ButtonSize, string> = {
 	inline: "text-sm ms-1",
 };
 
-const toneVariants = new Set<ButtonVariant>([
-	"neutral",
-	"accent",
-	"danger",
-	"dangerSoft",
-	"link",
-]);
+const buttonAlignClasses: Record<ButtonAlign, string> = {
+	start: "justify-start",
+	center: "justify-center",
+	end: "justify-end",
+};
 
-function isButtonTone(variant: ButtonVariant): variant is ButtonTone {
-	return toneVariants.has(variant);
+function getDefaultTone(variant: ButtonVariant): ButtonTone {
+	if (variant === "primary") return "accent";
+
+	return "neutral";
 }
 
 function resolveButtonClasses({
@@ -72,14 +70,9 @@ function resolveButtonClasses({
 	variant: ButtonVariant;
 	tone?: ButtonTone;
 }) {
-	const resolvedTone = tone ?? (isButtonTone(variant) ? variant : undefined);
-
 	return {
 		variantClass: buttonVariantClasses[variant],
-		toneClass:
-			resolvedTone || variant !== "primary"
-				? buttonToneClasses[resolvedTone ?? "neutral"]
-				: undefined,
+		toneClass: buttonToneClasses[tone ?? getDefaultTone(variant)],
 	};
 }
 
@@ -89,12 +82,14 @@ export function buttonClassNames({
 	variant = "secondary",
 	tone,
 	type,
+	align,
 }: {
 	className?: string;
 	size?: ButtonSize;
 	variant?: ButtonVariant;
 	tone?: ButtonTone;
-	type?: "button" | "submit" | "reset";
+	type?: ButtonType;
+	align?: ButtonAlign;
 }) {
 	const { variantClass, toneClass } = resolveButtonClasses({ variant, tone });
 
@@ -108,12 +103,18 @@ export function buttonClassNames({
 		.filter(Boolean)
 		.join(" ");
 
-	const baseClasses = `inline-flex items-center justify-center gap-2 transition disabled:cursor-not-allowed disabled:opacity-40 ${extraClass}`;
+	const baseClasses = `inline-flex items-center gap-2 transition disabled:cursor-not-allowed ${extraClass}`;
 
 	const combinedClassName = cn(
 		baseClasses,
 		variantClass,
-		buttonSizeClasses[size],
+		buttonAlignClasses[align ?? "center"],
+		isTextVariant
+			? buttonSizeClasses[size]
+					.replace(/(?:^|\s)px-\S+(?=\s|$)/g, "")
+					.replace(/\s+/g, " ")
+					.trim()
+			: buttonSizeClasses[size],
 		!isTextVariant ? toneClass : undefined,
 		className,
 	);
@@ -133,6 +134,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 			icon,
 			iconPosition = "start",
 			isLoading,
+			align = "center",
 			...props
 		},
 		ref,
@@ -146,6 +148,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 				variant,
 				tone,
 				type,
+				align,
 			})}
 			{...props}
 		>
@@ -171,13 +174,20 @@ export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
 			icon,
 			iconPosition = "start",
 			isLoading,
+			align = "center",
 			...props
 		},
 		ref,
 	) => (
 		<Link
 			ref={ref}
-			className={buttonClassNames({ className, size, variant, tone })}
+			className={buttonClassNames({
+				className,
+				size,
+				variant,
+				tone,
+				align,
+			})}
 			{...props}
 		>
 			{iconPosition === "start" &&

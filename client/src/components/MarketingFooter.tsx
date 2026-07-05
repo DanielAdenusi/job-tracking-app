@@ -1,5 +1,5 @@
-import { Link } from "react-router";
 import { Logo } from "./ui/Logo";
+import { ButtonLink } from "./ui/Button";
 
 export function MarketingFooter() {
 	return (
@@ -20,8 +20,14 @@ export function MarketingFooter() {
 							<p className="font-black text-(--landing-text)">
 								Product
 							</p>
-							<div className="mt-5 grid gap-3 text-sm font-semibold text-(--landing-muted)">
-								<Link to="/help">How it works</Link>
+							<div className="mt-5 grid text-sm font-semibold text-(--landing-muted)">
+								<ButtonLink
+									variant="text"
+									align="start"
+									to="/help"
+								>
+									How it works
+								</ButtonLink>
 							</div>
 						</div>
 
@@ -29,9 +35,21 @@ export function MarketingFooter() {
 							<p className="font-black text-(--landing-text)">
 								Support
 							</p>
-							<div className="mt-5 grid gap-3 text-sm font-semibold text-(--landing-muted)">
-								<Link to="/contact">Contact us</Link>
-								<Link to="/help">FAQ</Link>
+							<div className="mt-5 grid text-sm font-semibold text-(--landing-muted)">
+								<ButtonLink
+									variant="text"
+									align="start"
+									to="/contact"
+								>
+									Contact us
+								</ButtonLink>
+								<ButtonLink
+									variant="text"
+									align="start"
+									to="/help"
+								>
+									FAQ
+								</ButtonLink>
 							</div>
 						</div>
 
@@ -39,9 +57,21 @@ export function MarketingFooter() {
 							<p className="font-black text-(--landing-text)">
 								Workspace
 							</p>
-							<div className="mt-5 grid gap-3 text-sm font-semibold text-(--landing-muted)">
-								<Link to="/login">Log in</Link>
-								<Link to="/signup">Sign up</Link>
+							<div className="mt-5 grid text-sm font-semibold text-(--landing-muted)">
+								<ButtonLink
+									variant="text"
+									align="start"
+									to="/login"
+								>
+									Log in
+								</ButtonLink>
+								<ButtonLink
+									variant="text"
+									align="start"
+									to="/signup"
+								>
+									Sign up
+								</ButtonLink>
 							</div>
 						</div>
 
@@ -49,10 +79,28 @@ export function MarketingFooter() {
 							<p className="font-black text-(--landing-text)">
 								Legal
 							</p>
-							<div className="mt-5 grid gap-3 text-sm font-semibold text-(--landing-muted)">
-								<Link to="/terms">Terms of service</Link>
-								<Link to="/privacy">Privacy policy</Link>
-								<Link to="/cookies">Cookie policy</Link>
+							<div className="mt-5 grid text-sm font-semibold text-(--landing-muted)">
+								<ButtonLink
+									variant="text"
+									align="start"
+									to="/terms"
+								>
+									Terms of service
+								</ButtonLink>
+								<ButtonLink
+									variant="text"
+									align="start"
+									to="/privacy"
+								>
+									Privacy policy
+								</ButtonLink>
+								<ButtonLink
+									variant="text"
+									align="start"
+									to="/cookies"
+								>
+									Cookie policy
+								</ButtonLink>
 							</div>
 						</div>
 					</div>

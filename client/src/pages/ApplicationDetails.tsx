@@ -17,7 +17,7 @@ import {
 	Lock,
 	MapPin,
 	MessageSquare,
-	Pencil,
+	PencilLine,
 	PoundSterling,
 	Trash2,
 	WifiOff,
@@ -36,9 +36,9 @@ import {
 import { isLocalApplicationId } from "../services/applicationOfflineStore";
 import { type ApplicationStatus } from "../constants/applicationOptions";
 import type { Application } from "../types/application";
+import type { ApplicationStatusTransition } from "../types/application";
 import { ConfirmationModal } from "../components/ConfirmationModal";
 import { Button, ButtonLink } from "../components/ui/Button";
-import { IconButton } from "../components/ui/IconButton";
 import { Textarea } from "../components/ui/FormControls";
 import { APP_NAME } from "../constants/pageTitle";
 
@@ -203,16 +203,85 @@ function getTimelineTitle(status: ApplicationStatus, index: number) {
 }
 
 function getTimelineTransitions(application: Application) {
-	if (application.statusTransitions.length > 0) {
-		return application.statusTransitions;
+	const transitions =
+		application.statusTransitions.length > 0
+			? application.statusTransitions
+			: [
+					{
+						status: application.status,
+						transitionedAt:
+							application.updatedAt || application.createdAt,
+					},
+				];
+
+	const latestTransitionByStatus = transitions.reduce<
+		Partial<Record<ApplicationStatus, ApplicationStatusTransition>>
+	>((latestByStatus, transition) => {
+		const currentLatest = latestByStatus[transition.status];
+
+		if (
+			!currentLatest ||
+			new Date(transition.transitionedAt).getTime() >=
+				new Date(currentLatest.transitionedAt).getTime()
+		) {
+			latestByStatus[transition.status] = transition;
+		}
+
+		return latestByStatus;
+	}, {});
+
+	const currentStageIndex = STATUS_ADVANCE_ORDER.indexOf(application.status);
+
+	if (currentStageIndex !== -1) {
+		const pipelineTransitions = STATUS_ADVANCE_ORDER.slice(
+			0,
+			currentStageIndex + 1,
+		)
+			.map((status) => latestTransitionByStatus[status])
+			.filter(
+				(
+					transition,
+				): transition is ApplicationStatusTransition =>
+					Boolean(transition),
+			);
+
+		if (
+			!pipelineTransitions.some(
+				(transition) => transition.status === application.status,
+			)
+		) {
+			pipelineTransitions.push({
+				status: application.status,
+				transitionedAt: application.updatedAt || application.createdAt,
+			});
+		}
+
+		return pipelineTransitions;
 	}
 
-	return [
-		{
+	const latestTransitions = Object.values(latestTransitionByStatus)
+		.filter(
+			(transition): transition is ApplicationStatusTransition =>
+				Boolean(transition),
+		)
+		.sort(
+			(first, second) =>
+				new Date(first.transitionedAt).getTime() -
+				new Date(second.transitionedAt).getTime(),
+		);
+
+	if (
+		!latestTransitions.some(
+			(transition) => transition.status === application.status,
+		)
+	) {
+		latestTransitions.push({
 			status: application.status,
 			transitionedAt: application.updatedAt || application.createdAt,
-		},
-	];
+		});
+	}
+
+	return latestTransitions;
 }
 
 function DetailField({
@@ -542,6 +611,7 @@ export function ApplicationDetailsPage() {
 				<div className="flex flex-row gap-3 border-b border-slate-100 px-5 pb-4 pt-6 justify-between sm:px-8">
 					<ButtonLink
 						to="/applications"
+						tone="neutral"
 						icon={<ArrowLeft size={16} strokeWidth={2.5} />}
 						aria-label="Back to applications list"
 					>
@@ -620,7 +690,6 @@ export function ApplicationDetailsPage() {
 								to={application.jobUrl}
 								target="_blank"
 								rel="noreferrer"
-								variant="secondary"
 								className="w-full sm:w-auto"
 							>
 								<ExternalLink size={16} strokeWidth={2.5} />
@@ -630,27 +699,19 @@ export function ApplicationDetailsPage() {
 
 						<ButtonLink
 							to={`/applications/${application.id}/edit`}
-							variant="primary"
-							icon={<Pencil size={16} strokeWidth={2.5} />}
+							tone="neutral"
+							icon={<PencilLine size={16} strokeWidth={2.5} />}
 							className="w-full sm:w-auto"
 						>
 							Edit Record
 						</ButtonLink>
 
-						<IconButton
-							onClick={() => setIsDeleteModalOpen(true)}
-							label={`Delete ${application.role}`}
-							tone="danger"
-							className="hidden sm:grid"
-						>
-							<Trash2 size={16} strokeWidth={2.5} />
-						</IconButton>
 						<Button
 							onClick={() => setIsDeleteModalOpen(true)}
-							variant="danger"
-							className="w-full sm:hidden"
+							tone="danger"
+							className="max-sm:w-full"
+							icon={<Trash2 size={16} strokeWidth={2.5} />}
 						>
-							<Trash2 size={16} strokeWidth={2.5} />
 							Delete
 						</Button>
 					</div>
