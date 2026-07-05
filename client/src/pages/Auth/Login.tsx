@@ -19,7 +19,7 @@ type LocationState = {
 };
 
 export function LoginPage() {
-	const { user, isAuthLoading, loginWithEmail, loginWithGoogle } = useAuth();
+	const { user, loginWithEmail, loginWithGoogle } = useAuth();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
@@ -82,14 +82,6 @@ export function LoginPage() {
 		} finally {
 			setIsSigningInWithGoogle(false);
 		}
-	}
-
-	if (isAuthLoading) {
-		return (
-			<div className="auth-loading mt-8 rounded-xl border p-5 text-center text-sm font-semibold">
-				Loading...
-			</div>
-		);
 	}
 
 	if (user) {

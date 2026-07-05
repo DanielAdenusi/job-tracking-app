@@ -19,6 +19,8 @@ async function getRequestHeaders(
 	}
 
 	if (requireAuth) {
+		await auth.authStateReady();
+
 		const user = auth.currentUser;
 
 		if (!user) {

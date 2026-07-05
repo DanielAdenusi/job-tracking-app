@@ -741,7 +741,7 @@ export function AppLayout() {
 	const isMobile = window.innerWidth < 1024;
 
 	return (
-		<div className="app-shell min-h-screen bg-slate-50 text-slate-950 lg:grid lg:max-h-screen lg:grid-cols-[256px_1fr] lg:overflow-hidden">
+		<div className="app-shell min-h-dvh bg-slate-50 text-slate-950 lg:grid lg:max-h-dvh lg:grid-cols-[256px_1fr] lg:overflow-hidden">
 			<header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200 bg-white/90 px-6 backdrop-blur lg:hidden">
 				<button
 					type="button"
@@ -788,7 +788,7 @@ export function AppLayout() {
 			{isMobileNavRendered && (
 				<div
 					className={[
-						"app-mobile-nav-overlay fixed inset-0 z-40 lg:hidden",
+						"app-mobile-nav-overlay fixed inset-x-0 top-0 z-40 h-dvh max-h-dvh lg:hidden",
 						isMobileNavOpen
 							? "app-mobile-nav-overlay-open"
 							: "app-mobile-nav-overlay-closed",
@@ -803,7 +803,7 @@ export function AppLayout() {
 
 					<aside
 						className={[
-							"app-mobile-nav-panel relative flex h-full w-[min(296px,82vw)] flex-col border-r border-slate-200 bg-white shadow-2xl",
+							"app-mobile-nav-panel relative flex h-dvh max-h-dvh w-[min(296px,82vw)] flex-col border-r border-slate-200 bg-white shadow-2xl",
 							isMobileNavClosing ? "pointer-events-none" : "",
 						].join(" ")}
 					>
@@ -847,7 +847,7 @@ export function AppLayout() {
 				</div>
 			)}
 
-			<aside className="hidden min-h-screen max-h-screen flex-col border-r border-slate-200 bg-white lg:flex">
+			<aside className="hidden min-h-dvh max-h-dvh flex-col border-r border-slate-200 bg-white lg:flex">
 				<div className="flex h-20 flex-col justify-center border-b border-slate-200 px-5">
 					<span className="relative">
 						<Link
@@ -884,7 +884,7 @@ export function AppLayout() {
 
 			<div
 				className={[
-					"min-h-[calc(100vh-5rem)] min-w-0 bg-slate-50 lg:min-h-screen lg:max-h-screen",
+					"min-h-[calc(100dvh-5rem)] min-w-0 bg-slate-50 lg:min-h-dvh lg:max-h-dvh",
 					isKanbanPage
 						? "overflow-hidden lg:flex lg:flex-col"
 						: "overflow-y-auto",

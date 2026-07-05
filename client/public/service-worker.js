@@ -1,6 +1,5 @@
-const CACHE_NAME = "jobmarkr-shell-v1";
+const CACHE_NAME = "jobmarkr-shell-v2";
 const APP_SHELL = [
-	"/",
 	"/site.webmanifest",
 	"/favicon/favicon-bg-192.png",
 	"/favicon/favicon-bg-512.png",
@@ -45,6 +44,29 @@ self.addEventListener("fetch", (event) => {
 		return;
 	}
 
+	if (request.mode === "navigate") {
+		event.respondWith(
+			fetch(request)
+				.then((response) => {
+					if (!response || response.status !== 200) {
+						return response;
+					}
+
+					const responseToCache = response.clone();
+
+					caches.open(CACHE_NAME).then((cache) => {
+						cache.put(request, responseToCache).catch(() => {
+							// Some browser-generated requests cannot be cached.
+						});
+					});
+
+					return response;
+				})
+				.catch(() => caches.match(request)),
+		);
+		return;
+	}
+
 	event.respondWith(
 		caches.match(request).then((cachedResponse) => {
 			if (cachedResponse) return cachedResponse;
@@ -69,7 +91,7 @@ self.addEventListener("fetch", (event) => {
 
 					return response;
 				})
-				.catch(() => caches.match("/"));
+				.catch(() => Response.error());
 		}),
 	);
 });
