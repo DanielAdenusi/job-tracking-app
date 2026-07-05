@@ -200,7 +200,7 @@ html[data-theme="dark"] .button-secondary.button-tone-neutral:hover {
 html[data-theme="dark"] .button-secondary.button-tone-accent {
 	background-color: var(--app-accent-soft, rgb(14 168 154 / 0.16));
 	border-color: var(--app-accent-ring, rgb(14 168 154 / 0.32));
-	color: #7dd3fc;
+	color: var(--app-accent, #0ea89a);
 }
 
 html[data-theme="dark"] .button-secondary.button-tone-link {
