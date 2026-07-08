@@ -30,6 +30,8 @@ import {
 	Moon,
 	MailCheck,
 	RefreshCw,
+	Bell,
+	CalendarClock,
 } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 import type { ApplicationStatus } from "../constants/applicationOptions";
@@ -45,6 +47,12 @@ import { Logo } from "../components/ui/Logo";
 import { useToast } from "../components/ToastProvider";
 import { getAuthErrorMessage } from "../pages/Auth/sharedAuthUi";
 import { useAnimatedDisclosure } from "../hooks/useAnimatedDisclosure";
+import type { Application } from "../types/application";
+import {
+	scheduleApplicationNotifications,
+	updateApplicationBadge,
+} from "../services/applicationNotifications";
+import { enablePushSubscription } from "../services/pushSubscriptionsApi";
 
 const mainNavItems = [
 	{
@@ -62,6 +70,11 @@ const mainNavItems = [
 		label: "Kanban",
 		path: "/kanban",
 		icon: Columns3,
+	},
+	{
+		label: "Upcoming",
+		path: "/upcoming",
+		icon: CalendarClock,
 	},
 	{
 		label: "Add Application",
@@ -277,6 +290,23 @@ function getHeaderMeta(pathname: string, search: string): HeaderMeta {
 					to: "/applications",
 					icon: BriefcaseBusiness,
 					variant: "secondary",
+				},
+			],
+		};
+	}
+
+	if (pathname === "/upcoming") {
+		return {
+			label: currentPage,
+			eyebrow: "Schedule",
+			description:
+				"See every upcoming follow-up, deadline, interview, and offer decision in one place.",
+			chips: ["Upcoming"],
+			actions: [
+				{
+					label: "Add application",
+					to: "/applications/new",
+					icon: Plus,
 				},
 			],
 		};
@@ -598,6 +628,7 @@ function HeaderActionLink({ action }: { action: HeaderAction }) {
 
 export function AppLayout() {
 	const { user, logout, sendVerificationEmail, refreshUser } = useAuth();
+	const { settings, saveSettings } = useAccountSettings();
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { showToast } = useToast();
@@ -612,6 +643,11 @@ export function AppLayout() {
 	const [isLoggingOut, setIsLoggingOut] = useState(false);
 	const [isSendingVerification, setIsSendingVerification] = useState(false);
 	const [isRefreshingVerification, setIsRefreshingVerification] =
+		useState(false);
+	const [applicationsSnapshot, setApplicationsSnapshot] = useState<
+		Application[]
+	>([]);
+	const [isRequestingNotifications, setIsRequestingNotifications] =
 		useState(false);
 	const [pipelineCounts, setPipelineCounts] = useState<
 		Record<ApplicationStatus, number>
@@ -673,6 +709,7 @@ export function AppLayout() {
 						(item) => item.status === "withdrawn",
 					).length,
 				});
+				setApplicationsSnapshot(data);
 			} catch {
 				if (!isActive) return;
 			}
@@ -690,6 +727,12 @@ export function AppLayout() {
 			);
 		};
 	}, [user?.uid]);
+
+	useEffect(() => {
+		void updateApplicationBadge(applicationsSnapshot);
+
+		return scheduleApplicationNotifications(applicationsSnapshot, settings);
+	}, [applicationsSnapshot, settings]);
 
 	async function confirmLogout() {
 		try {
@@ -735,17 +778,88 @@ export function AppLayout() {
 		}
 	}
 
+	async function handleNotificationPrompt(shouldEnable: boolean) {
+		try {
+			setIsRequestingNotifications(true);
+
+			const nextSettings = {
+				...settings,
+				notificationOnboardingSeen: true,
+				browserNotificationsEnabled:
+					shouldEnable && settings.browserNotificationsEnabled,
+			};
+
+			if (!shouldEnable) {
+				await saveSettings(nextSettings);
+				return;
+			}
+
+			if (!("Notification" in window)) {
+				await saveSettings({
+					...nextSettings,
+					browserNotificationsEnabled: false,
+				});
+				showToast(
+					"This browser does not support notifications.",
+					"error",
+				);
+				return;
+			}
+
+			const permission =
+				Notification.permission === "default"
+					? await Notification.requestPermission()
+					: Notification.permission;
+
+			if (permission === "granted") {
+				await enablePushSubscription();
+			}
+
+			await saveSettings({
+				...nextSettings,
+				browserNotificationsEnabled: permission === "granted",
+			});
+
+			showToast(
+				permission === "granted"
+					? "Notifications enabled."
+					: "Notifications were not enabled.",
+				permission === "granted" ? "success" : "error",
+			);
+		} catch (error) {
+			showToast(
+				error instanceof Error
+					? error.message
+					: "Could not update notification settings.",
+				"error",
+			);
+		} finally {
+			setIsRequestingNotifications(false);
+		}
+	}
+
 	const isAccountPage =
 		location.pathname === "/account" ||
 		location.pathname.startsWith("/account/");
 	const isMobile = window.innerWidth < 1024;
+	const shouldShowNotificationPrompt =
+		!settings.notificationOnboardingSeen &&
+		!settings.browserNotificationsEnabled &&
+		"Notification" in window &&
+		Notification.permission !== "denied";
 
 	return (
 		<div className="app-shell min-h-dvh bg-slate-50 text-slate-950 lg:grid lg:h-dvh lg:max-h-dvh lg:grid-cols-[256px_1fr] lg:overflow-hidden">
-			<header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200 bg-white/90 px-6 backdrop-blur lg:hidden">
+			<header
+				className="sticky top-0 z-30 flex h-20 cursor-pointer items-center justify-between border-b border-slate-200 bg-white/90 px-6 backdrop-blur lg:hidden"
+				onClick={openMobileNav}
+			>
 				<button
 					type="button"
-					onClick={openMobileNav}
+					onClick={(event) => {
+						event.stopPropagation();
+						openMobileNav();
+					}}
 					aria-label="Open navigation"
 					aria-expanded={isMobileNavOpen}
 					className="grid h-10 w-10 place-items-center rounded-xl text-slate-500 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-white hover:text-slate-950 hover:shadow-sm hover:ring-1 hover:ring-slate-200"
@@ -768,6 +882,7 @@ export function AppLayout() {
 					to="/account"
 					size="sm"
 					className="grid place-items-center p-0! rounded-full"
+					onClick={(event) => event.stopPropagation()}
 				>
 					{user?.photoURL ? (
 						<img
@@ -933,6 +1048,54 @@ export function AppLayout() {
 								>
 									<RefreshCw size={15} strokeWidth={2.4} />
 									Refresh
+								</Button>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{shouldShowNotificationPrompt && (
+					<div className="border-b border-blue-100 bg-blue-50 px-6 py-3 text-blue-950 lg:px-10">
+						<div className="mx-auto flex w-full max-w-[1680px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+							<div className="flex min-w-0 items-start gap-3">
+								<Bell
+									size={20}
+									strokeWidth={2.5}
+									className="mt-0.5 shrink-0 text-blue-600"
+								/>
+								<div className="min-w-0">
+									<p className="text-sm font-black">
+										Enable notifications for your job
+										search?
+									</p>
+									<p className="mt-0.5 text-sm font-medium leading-5 text-blue-800">
+										They power reminders for interviews,
+										follow-ups, deadlines, and offers when
+										this browser supports them.
+									</p>
+								</div>
+							</div>
+							<div className="flex shrink-0 flex-wrap gap-2">
+								<Button
+									variant="primary"
+									size="sm"
+									isLoading={isRequestingNotifications}
+									disabled={isRequestingNotifications}
+									onClick={() =>
+										void handleNotificationPrompt(true)
+									}
+								>
+									Allow notifications
+								</Button>
+								<Button
+									variant="secondary"
+									size="sm"
+									disabled={isRequestingNotifications}
+									onClick={() =>
+										void handleNotificationPrompt(false)
+									}
+								>
+									Not now
 								</Button>
 							</div>
 						</div>

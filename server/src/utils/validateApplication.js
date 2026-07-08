@@ -58,6 +58,15 @@ export function validateApplicationInput(data, { partial = false } = {}) {
 		errors.workMode = "Invalid work mode";
 	}
 
+	if (
+		data.interviewMode !== undefined &&
+		data.interviewMode !== "" &&
+		data.interviewMode !== null &&
+		!WORK_MODES.includes(data.interviewMode)
+	) {
+		errors.interviewMode = "Invalid interview mode";
+	}
+
 	if (data.jobUrl) {
 		try {
 			const url = new URL(data.jobUrl);
@@ -97,6 +106,29 @@ export function validateApplicationInput(data, { partial = false } = {}) {
 		) {
 			errors.hoursPerWeek = "Hours per week must be between 1 and 168";
 		}
+	}
+
+	for (const field of ["reminderLeadMinutes", "secondReminderLeadMinutes"]) {
+		if (data[field] === undefined || data[field] === null || data[field] === "") {
+			continue;
+		}
+
+		const numericValue = Number(data[field]);
+
+		if (
+			!Number.isInteger(numericValue) ||
+			numericValue < 0 ||
+			numericValue > 60 * 24 * 30
+		) {
+			errors[field] = "Reminder timing must be between now and 30 days before";
+		}
+	}
+
+	if (
+		data.notificationsEnabled !== undefined &&
+		typeof data.notificationsEnabled !== "boolean"
+	) {
+		errors.notificationsEnabled = "Notifications enabled must be true or false";
 	}
 
 	return {

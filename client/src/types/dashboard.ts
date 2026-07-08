@@ -14,6 +14,11 @@ export type DashboardApplicationSummary = {
 	createdAt: string;
 };
 
+export type DashboardReminderSummary = DashboardApplicationSummary & {
+	eventKind: "follow_up" | "deadline" | "interview" | "offer_deadline";
+	eventAt: string;
+};
+
 export type DashboardStats = {
 	totalApplications: number;
 	appliedCount: number;
@@ -24,5 +29,6 @@ export type DashboardStats = {
 	overdueFollowUpCount: number;
 	recentApplications: DashboardApplicationSummary[];
 	upcomingFollowUps: DashboardApplicationSummary[];
+	reminderDigest: DashboardReminderSummary[];
 	isOffline?: boolean;
 };

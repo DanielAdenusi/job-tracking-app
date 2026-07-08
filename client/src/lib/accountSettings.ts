@@ -43,6 +43,7 @@ export type UserSettings = {
 	followUpRemindersEnabled: boolean;
 	interviewRemindersEnabled: boolean;
 	browserNotificationsEnabled: boolean;
+	notificationOnboardingSeen: boolean;
 	weeklySummaryEnabled: boolean;
 	marketingUpdatesEnabled: boolean;
 	reminderTiming: ReminderTiming;
@@ -73,6 +74,7 @@ export const defaultSettings: UserSettings = {
 	followUpRemindersEnabled: true,
 	interviewRemindersEnabled: true,
 	browserNotificationsEnabled: false,
+	notificationOnboardingSeen: false,
 	weeklySummaryEnabled: false,
 	marketingUpdatesEnabled: false,
 	reminderTiming: "one_day",

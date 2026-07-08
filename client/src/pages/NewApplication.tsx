@@ -123,6 +123,12 @@ function createSampleApplication(index = 0): CreateApplicationInput {
 		deadlineAt: addDays(index + 14),
 		interviewAt:
 			index % 3 === 0 ? `${addDays(index + 7)}T10:00` : undefined,
+		interviewLocation:
+			index % 3 === 0 ? "Google Meet - link in recruiter email" : undefined,
+		interviewMode: index % 3 === 0 ? "remote" : undefined,
+		notificationsEnabled: index % 2 === 0,
+		reminderLeadMinutes: 1440,
+		secondReminderLeadMinutes: index % 2 === 0 ? 60 : undefined,
 	};
 }
 
@@ -158,8 +164,16 @@ function applicationToFormValues(
 		followUpAt: application.followUpAt ?? "",
 		deadlineAt: application.deadlineAt ?? "",
 		interviewAt: application.interviewAt ?? "",
+		interviewLocation: application.interviewLocation ?? "",
+		interviewMode: application.interviewMode ?? "",
 		rejectedAt: application.rejectedAt ?? "",
 		offerDeadlineAt: application.offerDeadlineAt ?? "",
+		notificationsEnabled: application.notificationsEnabled ?? false,
+		reminderLeadMinutes: String(application.reminderLeadMinutes ?? 1440),
+		secondReminderLeadMinutes:
+			application.secondReminderLeadMinutes == null
+				? ""
+				: String(application.secondReminderLeadMinutes),
 	};
 }
 

@@ -94,6 +94,12 @@ function optionalDate(value: string | undefined) {
 	return value || null;
 }
 
+function optionalNumber(value: number | "" | undefined) {
+	if (value === undefined || value === "") return null;
+
+	return Number.isFinite(value) ? value : null;
+}
+
 function normalizeJobDescription(
 	value: CreateApplicationInput["jobDescription"] | Application["jobDescription"] | undefined,
 ) {
@@ -149,8 +155,16 @@ function buildLocalApplication(
 		followUpAt: optionalDate(data.followUpAt),
 		deadlineAt: optionalDate(data.deadlineAt),
 		interviewAt: optionalDate(data.interviewAt),
+		interviewLocation: nullableText(data.interviewLocation),
+		interviewMode: data.interviewMode || null,
 		rejectedAt: optionalDate(data.rejectedAt),
 		offerDeadlineAt: optionalDate(data.offerDeadlineAt),
+		reminderLeadMinutes: optionalNumber(data.reminderLeadMinutes),
+		secondReminderLeadMinutes: optionalNumber(
+			data.secondReminderLeadMinutes,
+		),
+		notificationsEnabled: data.notificationsEnabled === true,
+		visitedAt: null,
 		statusTransitions: [
 			{
 				status,
@@ -344,6 +358,14 @@ export function updateCachedApplication(
 			data.interviewAt === undefined
 				? existing.interviewAt
 				: optionalDate(data.interviewAt),
+		interviewLocation:
+			data.interviewLocation === undefined
+				? existing.interviewLocation
+				: nullableText(data.interviewLocation),
+		interviewMode:
+			data.interviewMode === undefined
+				? existing.interviewMode
+				: data.interviewMode || null,
 		rejectedAt:
 			data.rejectedAt === undefined
 				? existing.rejectedAt
@@ -352,6 +374,18 @@ export function updateCachedApplication(
 			data.offerDeadlineAt === undefined
 				? existing.offerDeadlineAt
 				: optionalDate(data.offerDeadlineAt),
+		reminderLeadMinutes:
+			data.reminderLeadMinutes === undefined
+				? existing.reminderLeadMinutes
+				: optionalNumber(data.reminderLeadMinutes),
+		secondReminderLeadMinutes:
+			data.secondReminderLeadMinutes === undefined
+				? existing.secondReminderLeadMinutes
+				: optionalNumber(data.secondReminderLeadMinutes),
+		notificationsEnabled:
+			data.notificationsEnabled === undefined
+				? existing.notificationsEnabled
+				: data.notificationsEnabled,
 		updatedAt,
 	};
 
@@ -391,6 +425,16 @@ export function updateCachedApplicationStatus(
 	return updateCachedApplication(id, {
 		status,
 	});
+}
+
+export function markCachedApplicationVisited(id: string) {
+	const existing = getCachedApplication(id);
+
+	if (!existing) return null;
+
+	return updateCachedApplication(id, {
+		visitedAt: new Date().toISOString(),
+	} as UpdateApplicationInput);
 }
 
 export function deleteCachedApplication(id: string) {

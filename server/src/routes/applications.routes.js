@@ -9,6 +9,7 @@ import {
 	extractApplicationController,
 	updateApplicationController,
 	updateApplicationStatusController,
+	markApplicationVisitedController,
 	deleteApplicationController,
 	deleteApplicationsController,
 } from "../controllers/applications.controller.js";
@@ -21,13 +22,13 @@ router.use(requireAuth);
 // Gets all applications for the logged-in user
 router.get("/", getApplicationsController);
 
-// GET /api/applications/:id
-// Gets a specific application for the logged-in user
-router.get("/:id", getApplicationController);
-
 // GET /api/applications/status/:status
 // Gets all applications for the logged-in user with a specific status
 router.get("/status/:status", getApplicationsByStatusController);
+
+// GET /api/applications/:id
+// Gets a specific application for the logged-in user
+router.get("/:id", getApplicationController);
 
 // POST /api/applications
 // Creates a new application for the logged-in user
@@ -44,6 +45,10 @@ router.delete("/", deleteApplicationsController);
 // PATCH /api/applications/:id/status
 // Update the status of a specific application for the logged-in user
 router.patch("/:id/status", updateApplicationStatusController);
+
+// PATCH /api/applications/:id/visited
+// Marks an application as opened by the logged-in user
+router.patch("/:id/visited", markApplicationVisitedController);
 
 // PATCH /api/applications/:id
 // Updates an existing application for the logged-in user

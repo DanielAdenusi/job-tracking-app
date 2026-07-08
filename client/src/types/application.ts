@@ -34,8 +34,14 @@ export type Application = {
 	followUpAt: string | null;
 	deadlineAt: string | null;
 	interviewAt: string | null;
+	interviewLocation: string | null;
+	interviewMode: WorkMode | null;
 	rejectedAt: string | null;
 	offerDeadlineAt: string | null;
+	reminderLeadMinutes: number | null;
+	secondReminderLeadMinutes: number | null;
+	notificationsEnabled: boolean;
+	visitedAt: string | null;
 
 	statusTransitions: ApplicationStatusTransition[];
 
@@ -77,8 +83,13 @@ export type CreateApplicationInput = {
 	followUpAt?: string;
 	deadlineAt?: string;
 	interviewAt?: string;
+	interviewLocation?: string;
+	interviewMode?: WorkMode | "";
 	rejectedAt?: string;
 	offerDeadlineAt?: string;
+	reminderLeadMinutes?: number | "";
+	secondReminderLeadMinutes?: number | "";
+	notificationsEnabled?: boolean;
 };
 
 export type UpdateApplicationInput = Partial<CreateApplicationInput>;

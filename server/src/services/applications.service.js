@@ -30,6 +30,20 @@ function normalizeJobDescription(value) {
 	};
 }
 
+function normalizeReminderMinutes(value) {
+	if (value === undefined || value === null || value === "") {
+		return null;
+	}
+
+	const numericValue = Number(value);
+
+	return Number.isFinite(numericValue) ? Math.round(numericValue) : null;
+}
+
+function normalizeBoolean(value) {
+	return value === true;
+}
+
 function formatTransitionTimestamp(value) {
 	if (!value) {
 		return new Date().toISOString();
@@ -118,8 +132,14 @@ function mapApplicationRow(row) {
 		followUpAt: row.follow_up_at,
 		deadlineAt: row.deadline_at,
 		interviewAt: row.interview_at,
+		interviewLocation: row.interview_location,
+		interviewMode: row.interview_mode,
 		rejectedAt: row.rejected_at,
 		offerDeadlineAt: row.offer_deadline_at,
+		reminderLeadMinutes: row.reminder_lead_minutes,
+		secondReminderLeadMinutes: row.second_reminder_lead_minutes,
+		notificationsEnabled: row.notifications_enabled,
+		visitedAt: row.visited_at,
 		statusTransitions: normalizeStatusTransitions(
 			row.status_transitions,
 			row.status,
@@ -202,8 +222,13 @@ export async function createApplication(userId, data) {
       follow_up_at,
       deadline_at,
       interview_at,
+      interview_location,
+      interview_mode,
       rejected_at,
       offer_deadline_at,
+      reminder_lead_minutes,
+      second_reminder_lead_minutes,
+      notifications_enabled,
       status_transitions
     )
     VALUES (
@@ -211,7 +236,8 @@ export async function createApplication(userId, data) {
       $6, $7, $8, COALESCE($9::jsonb, '{}'::jsonb), COALESCE($10, 'saved'),
       COALESCE($11, 'medium'), $12, $13, $14,
       $15, $16, $17, $18, $19,
-      $20, $21, $22, $23,
+      $20, $21, $22, $23, $24,
+      $25, $26, $27, $28,
       jsonb_build_array(
         jsonb_build_object(
           'status', COALESCE($10, 'saved'),
@@ -243,8 +269,13 @@ export async function createApplication(userId, data) {
 			data.followUpAt || null,
 			data.deadlineAt || null,
 			data.interviewAt || null,
+			data.interviewLocation || null,
+			data.interviewMode || null,
 			data.rejectedAt || null,
 			data.offerDeadlineAt || null,
+			normalizeReminderMinutes(data.reminderLeadMinutes),
+			normalizeReminderMinutes(data.secondReminderLeadMinutes),
+			normalizeBoolean(data.notificationsEnabled),
 		],
 	);
 
@@ -288,9 +319,14 @@ export async function updateApplication(userId, applicationId, data) {
       follow_up_at = $20,
       deadline_at = $21,
       interview_at = $22,
-      rejected_at = $23,
-      offer_deadline_at = $24,
-      status_transitions = $25::jsonb
+      interview_location = $23,
+      interview_mode = $24,
+      rejected_at = $25,
+      offer_deadline_at = $26,
+      reminder_lead_minutes = $27,
+      second_reminder_lead_minutes = $28,
+      notifications_enabled = $29,
+      status_transitions = $30::jsonb
     WHERE user_id = $1
     AND id = $2
     RETURNING *
@@ -322,11 +358,25 @@ export async function updateApplication(userId, applicationId, data) {
 			getNextOptionalValue(data.followUpAt, existing.followUpAt),
 			getNextOptionalValue(data.deadlineAt, existing.deadlineAt),
 			getNextOptionalValue(data.interviewAt, existing.interviewAt),
+			getNextOptionalValue(
+				data.interviewLocation,
+				existing.interviewLocation,
+			),
+			getNextOptionalValue(data.interviewMode, existing.interviewMode),
 			getNextOptionalValue(data.rejectedAt, existing.rejectedAt),
 			getNextOptionalValue(
 				data.offerDeadlineAt,
 				existing.offerDeadlineAt,
 			),
+			data.reminderLeadMinutes === undefined
+				? existing.reminderLeadMinutes
+				: normalizeReminderMinutes(data.reminderLeadMinutes),
+			data.secondReminderLeadMinutes === undefined
+				? existing.secondReminderLeadMinutes
+				: normalizeReminderMinutes(data.secondReminderLeadMinutes),
+			data.notificationsEnabled === undefined
+				? existing.notificationsEnabled
+				: normalizeBoolean(data.notificationsEnabled),
 			JSON.stringify(nextStatusTransitions),
 		],
 	);
@@ -357,6 +407,25 @@ export async function updateApplicationStatus(userId, applicationId, status) {
     RETURNING *
     `,
 		[userId, applicationId, status, JSON.stringify(nextStatusTransitions)],
+	);
+
+	if (result.rows.length === 0) {
+		return null;
+	}
+
+	return mapApplicationRow(result.rows[0]);
+}
+
+export async function markApplicationVisited(userId, applicationId) {
+	const result = await pool.query(
+		`
+    UPDATE applications
+    SET visited_at = NOW()
+    WHERE user_id = $1
+    AND id = $2
+    RETURNING *
+    `,
+		[userId, applicationId],
 	);
 
 	if (result.rows.length === 0) {

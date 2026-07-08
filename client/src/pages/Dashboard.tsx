@@ -18,6 +18,7 @@ import {
 import { getDashboardStats } from "../services/dashboardApi";
 import type {
 	DashboardApplicationSummary,
+	DashboardReminderSummary,
 	DashboardStats,
 } from "../types/dashboard";
 import { EmptyState } from "../components/ui/Surface";
@@ -120,6 +121,24 @@ function formatDate(value: string | null) {
 		month: "short",
 		year: "numeric",
 	}).format(new Date(value));
+}
+
+function formatEventDate(value: string) {
+	return new Intl.DateTimeFormat("en-GB", {
+		weekday: "short",
+		day: "numeric",
+		month: "short",
+		hour: "2-digit",
+		minute: "2-digit",
+	}).format(new Date(value));
+}
+
+function getReminderLabel(event: DashboardReminderSummary) {
+	if (event.eventKind === "follow_up") return "Follow-up";
+	if (event.eventKind === "deadline") return "Deadline";
+	if (event.eventKind === "interview") return "Interview";
+
+	return "Offer deadline";
 }
 
 function getApplicationProgress(application: DashboardApplicationSummary) {
@@ -258,6 +277,8 @@ export function DashboardPage() {
 			color: "bg-emerald-500 text-emerald-50",
 		},
 	];
+
+	const reminderDigest = dashboard.reminderDigest ?? [];
 
 	return (
 		<section className="grid gap-6 text-slate-950">
@@ -493,6 +514,61 @@ export function DashboardPage() {
 					</div>
 				</section>
 			</div>
+
+			<section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/40 md:p-6">
+				<div className="mb-4 flex items-center justify-between gap-4 border-b border-slate-200 pb-4">
+					<div>
+						<h2 className="font-bold text-slate-950">
+							Reminder digest
+						</h2>
+						<p className="mt-1 text-sm text-slate-500">
+							The next dated moments across your applications.
+						</p>
+					</div>
+					<Link
+						to="/applications"
+						className="text-sm font-medium text-slate-500 transition group hover:text-slate-950"
+					>
+						All
+						<ArrowRight className="ml-1 inline-block h-4 w-4 transition group-hover:translate-x-0.5" />
+					</Link>
+				</div>
+
+				{reminderDigest.length === 0 ? (
+					<EmptyState>
+						<p className="text-lg font-extrabold">
+							No reminders scheduled.
+						</p>
+						<p className="mx-auto max-w-xl text-sm leading-7 text-slate-500">
+							Add follow-ups, deadlines, interviews, or offer
+							deadlines to build a reminder digest.
+						</p>
+					</EmptyState>
+				) : (
+					<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+						{reminderDigest.map((event) => (
+							<Link
+								key={`${event.id}-${event.eventKind}-${event.eventAt}`}
+								to={`/applications/${event.id}`}
+								className="rounded-xl border border-slate-100 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm hover:shadow-slate-200/70 hover:ring-1 hover:ring-slate-200"
+							>
+								<span className="inline-flex rounded-full bg-white px-2.5 py-1 text-[0.68rem] font-black text-slate-500 ring-1 ring-slate-200">
+									{getReminderLabel(event)}
+								</span>
+								<p className="mt-3 truncate text-sm font-extrabold text-slate-950">
+									{event.role}
+								</p>
+								<p className="mt-1 truncate text-xs font-semibold text-slate-500">
+									{event.company}
+								</p>
+								<p className="mt-3 text-xs font-black text-(--app-accent)">
+									{formatEventDate(event.eventAt)}
+								</p>
+							</Link>
+						))}
+					</div>
+				)}
+			</section>
 
 			<section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/40 md:p-6">
 				<div className="mb-4 flex items-end justify-between gap-4 border-b border-slate-200 pb-4">

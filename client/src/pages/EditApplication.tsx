@@ -87,12 +87,20 @@ export function EditApplicationPage() {
 			interviewAt: applicationFormHelpers.dateTimeLocalInputValue(
 				application.interviewAt,
 			),
+			interviewLocation: application.interviewLocation ?? "",
+			interviewMode: application.interviewMode ?? "",
 			rejectedAt: applicationFormHelpers.dateInputValue(
 				application.rejectedAt,
 			),
 			offerDeadlineAt: applicationFormHelpers.dateInputValue(
 				application.offerDeadlineAt,
 			),
+			notificationsEnabled: application.notificationsEnabled,
+			reminderLeadMinutes: String(application.reminderLeadMinutes ?? 1440),
+			secondReminderLeadMinutes:
+				application.secondReminderLeadMinutes == null
+					? ""
+					: String(application.secondReminderLeadMinutes),
 		};
 	}, [application]);
 

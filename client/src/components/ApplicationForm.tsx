@@ -12,7 +12,13 @@ import {
 } from "../constants/applicationOptions";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Surface";
-import { Field, Select, Textarea, TextInput } from "./ui/FormControls";
+import {
+	Checkbox,
+	Field,
+	Select,
+	Textarea,
+	TextInput,
+} from "./ui/FormControls";
 import type {
 	CreateApplicationInput,
 	JobDescriptionSections,
@@ -43,8 +49,13 @@ export type ApplicationFormValues = {
 	followUpAt: string;
 	deadlineAt: string;
 	interviewAt: string;
+	interviewLocation: string;
+	interviewMode: WorkMode | "";
 	rejectedAt: string;
 	offerDeadlineAt: string;
+	notificationsEnabled: boolean;
+	reminderLeadMinutes: string;
+	secondReminderLeadMinutes: string;
 };
 
 type ApplicationFormProps = {
@@ -91,8 +102,13 @@ const sectionFields: Record<FormSectionId, (keyof ApplicationFormValues)[]> = {
 		"followUpAt",
 		"deadlineAt",
 		"interviewAt",
+		"interviewLocation",
+		"interviewMode",
 		"rejectedAt",
 		"offerDeadlineAt",
+		"notificationsEnabled",
+		"reminderLeadMinutes",
+		"secondReminderLeadMinutes",
 	],
 	contactNotes: ["contactName", "contactEmail", "notes"],
 };
@@ -124,6 +140,10 @@ function dateTimeLocalInputValue(value?: string | null) {
 
 function emptyToUndefined(value: string) {
 	return value.trim() === "" ? undefined : value.trim();
+}
+
+function optionalReminderMinutes(value: string) {
+	return value === "" ? undefined : Number(value);
 }
 
 function parseListText(value: string) {
@@ -170,16 +190,19 @@ function FormSection({
 }) {
 	return (
 		<Card className="p-6">
-			<div className="flex items-start justify-between gap-4">
-				<div>
+			<button
+				type="button"
+				onClick={onToggle}
+				aria-expanded={!isCollapsed}
+				className="flex w-full items-start justify-between gap-4 rounded-lg text-left transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-(--app-accent-ring)"
+			>
+				<span>
 					<h3 className="text-lg font-extrabold">{title}</h3>
 					<p className="mt-1 text-sm text-slate-500">{description}</p>
-				</div>
-				<Button
-					type="button"
-					variant="ghost"
-					size="sm"
-					onClick={onToggle}
+				</span>
+				<span
+					className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-3 text-sm font-bold text-slate-600 transition"
+					aria-hidden="true"
 				>
 					{isCollapsed ? (
 						<ChevronDown size={15} strokeWidth={2.5} />
@@ -189,8 +212,8 @@ function FormSection({
 					<span className="hidden sm:inline">
 						{isCollapsed ? "Show" : "Hide"}
 					</span>
-				</Button>
-			</div>
+				</span>
+			</button>
 			{!isCollapsed && (
 				<div className="mt-6 grid gap-5 md:grid-cols-2">{children}</div>
 			)}
@@ -264,9 +287,23 @@ const defaultValues: ApplicationFormValues = {
 	followUpAt: "",
 	deadlineAt: "",
 	interviewAt: "",
+	interviewLocation: "",
+	interviewMode: "",
 	rejectedAt: "",
 	offerDeadlineAt: "",
+	notificationsEnabled: false,
+	reminderLeadMinutes: "1440",
+	secondReminderLeadMinutes: "",
 };
+
+const reminderOptions = [
+	{ label: "At the time", value: "0" },
+	{ label: "30 minutes before", value: "30" },
+	{ label: "1 hour before", value: "60" },
+	{ label: "1 day before", value: "1440" },
+	{ label: "3 days before", value: "4320" },
+	{ label: "1 week before", value: "10080" },
+] as const;
 
 export function ApplicationForm({
 	error,
@@ -390,8 +427,19 @@ export function ApplicationForm({
 			followUpAt: emptyToUndefined(values.followUpAt),
 			deadlineAt: emptyToUndefined(values.deadlineAt),
 			interviewAt: emptyToUndefined(values.interviewAt),
+			interviewLocation: emptyToUndefined(values.interviewLocation),
+			interviewMode: values.interviewMode,
 			rejectedAt: emptyToUndefined(values.rejectedAt),
 			offerDeadlineAt: emptyToUndefined(values.offerDeadlineAt),
+			notificationsEnabled: values.notificationsEnabled,
+			reminderLeadMinutes: values.notificationsEnabled
+				? optionalReminderMinutes(values.reminderLeadMinutes)
+				: undefined,
+			secondReminderLeadMinutes:
+				values.notificationsEnabled &&
+				values.secondReminderLeadMinutes !== ""
+					? optionalReminderMinutes(values.secondReminderLeadMinutes)
+					: undefined,
 		});
 	}
 
@@ -402,6 +450,26 @@ export function ApplicationForm({
 		: mode === "create"
 			? "Create application"
 			: "Save changes";
+	const showAppliedDate = [
+		"applied",
+		"assessment",
+		"interviewing",
+		"offer",
+		"rejected",
+		"withdrawn",
+	].includes(values.status);
+	const showApplicationDeadline = [
+		"wishlist",
+		"saved",
+		"applied",
+		"assessment",
+		"interviewing",
+	].includes(values.status);
+	const showFollowUpDate = values.status === "saved" || values.status === "applied";
+	const showAssessmentDueDate = values.status === "assessment";
+	const showInterviewFields = values.status === "interviewing";
+	const showRejectedDate = values.status === "rejected";
+	const showOfferDeadline = values.status === "offer";
 
 	return (
 		<form onSubmit={handleSubmit} className="grid gap-6">
@@ -635,52 +703,165 @@ export function ApplicationForm({
 
 			<FormSection
 				title="Dates"
-				description="Add deadlines, follow-ups, interviews, and outcome dates."
+				description="Add the dates that matter for the selected status, then set reminders if you want the app to notify you."
 				isCollapsed={collapsedSections.dates}
 				onToggle={() => toggleSection("dates")}
 			>
-				<TextField
-					field="appliedAt"
-					label="Applied date"
-					type="date"
-					value={values.appliedAt}
-					onChange={(value) => updateField("appliedAt", value)}
-				/>
-				<TextField
-					field="followUpAt"
-					label="Follow-up date"
-					type="date"
-					value={values.followUpAt}
-					onChange={(value) => updateField("followUpAt", value)}
-				/>
-				<TextField
-					field="deadlineAt"
-					label="Application deadline"
-					type="date"
-					value={values.deadlineAt}
-					onChange={(value) => updateField("deadlineAt", value)}
-				/>
-				<TextField
-					field="interviewAt"
-					label="Interview date/time"
-					type="datetime-local"
-					value={values.interviewAt}
-					onChange={(value) => updateField("interviewAt", value)}
-				/>
-				<TextField
-					field="rejectedAt"
-					label="Rejected date"
-					type="date"
-					value={values.rejectedAt}
-					onChange={(value) => updateField("rejectedAt", value)}
-				/>
-				<TextField
-					field="offerDeadlineAt"
-					label="Offer deadline"
-					type="date"
-					value={values.offerDeadlineAt}
-					onChange={(value) => updateField("offerDeadlineAt", value)}
-				/>
+				{showAppliedDate && (
+					<TextField
+						field="appliedAt"
+						label="Applied date"
+						type="date"
+						value={values.appliedAt}
+						onChange={(value) => updateField("appliedAt", value)}
+					/>
+				)}
+				{showApplicationDeadline && (
+					<TextField
+						field="deadlineAt"
+						label="Application deadline"
+						type="date"
+						value={values.deadlineAt}
+						onChange={(value) => updateField("deadlineAt", value)}
+					/>
+				)}
+				{showFollowUpDate && (
+					<TextField
+						field="followUpAt"
+						label="Follow-up date"
+						type="date"
+						value={values.followUpAt}
+						onChange={(value) => updateField("followUpAt", value)}
+					/>
+				)}
+				{showAssessmentDueDate && (
+					<TextField
+						field="followUpAt"
+						label="Assessment due date"
+						type="date"
+						value={values.followUpAt}
+						onChange={(value) => updateField("followUpAt", value)}
+					/>
+				)}
+				{showInterviewFields && (
+					<>
+						<TextField
+							field="interviewAt"
+							label="Interview date/time"
+							type="datetime-local"
+							value={values.interviewAt}
+							onChange={(value) =>
+								updateField("interviewAt", value)
+							}
+						/>
+						<TextField
+							field="interviewLocation"
+							label="Interview location or link"
+							value={values.interviewLocation}
+							placeholder="e.g. Google Meet link, London office, phone call"
+							onChange={(value) =>
+								updateField("interviewLocation", value)
+							}
+						/>
+						<Field label="Interview mode">
+							<Select
+								value={values.interviewMode}
+								onChange={(event) =>
+									updateField(
+										"interviewMode",
+										event.target.value as WorkMode | "",
+									)
+								}
+							>
+								<option value="">Use work mode / not set</option>
+								{WORK_MODES.map((mode) => (
+									<option key={mode} value={mode}>
+										{formatOption(mode)}
+									</option>
+								))}
+							</Select>
+						</Field>
+					</>
+				)}
+				{showRejectedDate && (
+					<TextField
+						field="rejectedAt"
+						label="Rejected date"
+						type="date"
+						value={values.rejectedAt}
+						onChange={(value) => updateField("rejectedAt", value)}
+					/>
+				)}
+				{showOfferDeadline && (
+					<TextField
+						field="offerDeadlineAt"
+						label="Offer deadline"
+						type="date"
+						value={values.offerDeadlineAt}
+						onChange={(value) =>
+							updateField("offerDeadlineAt", value)
+						}
+					/>
+				)}
+				<div className="grid gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4 md:col-span-2">
+					<Checkbox
+						checked={values.notificationsEnabled}
+						onChange={(checked) =>
+							updateField("notificationsEnabled", checked)
+						}
+						label="Send browser reminders for this application"
+					/>
+					<div className="grid gap-4 md:grid-cols-2">
+						<Field label="First reminder">
+							<Select
+								value={values.reminderLeadMinutes}
+								disabled={!values.notificationsEnabled}
+								onChange={(event) =>
+									updateField(
+										"reminderLeadMinutes",
+										event.target.value,
+									)
+								}
+							>
+								{reminderOptions.map((option) => (
+									<option
+										key={option.value}
+										value={option.value}
+									>
+										{option.label}
+									</option>
+								))}
+							</Select>
+						</Field>
+						<Field label="Second reminder">
+							<Select
+								value={values.secondReminderLeadMinutes}
+								disabled={!values.notificationsEnabled}
+								onChange={(event) =>
+									updateField(
+										"secondReminderLeadMinutes",
+										event.target.value,
+									)
+								}
+							>
+								<option value="">No second reminder</option>
+								{reminderOptions.map((option) => (
+									<option
+										key={option.value}
+										value={option.value}
+									>
+										{option.label}
+									</option>
+								))}
+							</Select>
+						</Field>
+					</div>
+					<p className="text-xs font-medium leading-5 text-slate-500">
+						Reminders are scheduled from the dated milestones
+						available for this status when this browser has
+						notification permission.
+					</p>
+				</div>
 			</FormSection>
 
 			<FormSection

@@ -56,6 +56,7 @@ import { EmptyState } from "../components/ui/Surface";
 import { SearchInput, Select } from "../components/ui/FormControls";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { loadLocalSettings, tableRowOptions } from "../lib/accountSettings";
+import { ApplicationEventChips } from "../components/ApplicationEventChips";
 
 import type { Application } from "../types/application";
 
@@ -1580,9 +1581,13 @@ export function ApplicationsPage() {
 																	Delete
 																</Button>
 															</div>
-														)}
-													</div>
+													)}
 												</div>
+
+												<ApplicationEventChips
+													application={application}
+												/>
+											</div>
 											</div>
 										</div>
 									</article>

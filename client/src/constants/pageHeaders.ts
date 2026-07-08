@@ -16,6 +16,10 @@ export const PAGE_HEADERS = [
 		path: "/kanban",
 	},
 	{
+		label: "Upcoming",
+		path: "/upcoming",
+	},
+	{
 		label: "Your Account",
 		path: "/account",
 	},

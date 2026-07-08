@@ -10,6 +10,7 @@ const pageTitles = [
 	{ path: "/applications/new", title: "Add Application" },
 	{ path: "/applications/:id", title: "Application Details" },
 	{ path: "/kanban", title: "Kanban" },
+	{ path: "/upcoming", title: "Upcoming" },
 	{ path: "/account", title: "Account" },
 	{ path: "/account/*", title: "Account" },
 	{ path: "/help", title: "Help" },
