@@ -660,7 +660,7 @@ html[data-theme="dark"] .rounded-xl.border.border-slate-100,
 html[data-theme="dark"] .rounded-xl.border.border-slate-200,
 html[data-theme="dark"] .rounded-2xl.border.border-slate-100,
 html[data-theme="dark"] .rounded-2xl.border.border-slate-200 {
-	border-color: var(--border-strong);
+	border-color: var(--border-subtle);
 }
 
 html[data-theme="dark"] .hover\:text-slate-950:hover,
@@ -745,18 +745,68 @@ html[data-theme="dark"] .group:hover .kanban-drag-handle {
 }
 
 html[data-theme="dark"] .kanban-application-card {
-	border-color: #3a3a40;
+	border-color: rgb(255 255 255 / 0.075);
 	box-shadow:
 		inset 0 1px 0 rgb(255 255 255 / 0.035),
 		0 10px 24px rgb(0 0 0 / 0.16);
 }
 
 html[data-theme="dark"] .kanban-application-card:hover {
-	border-color: var(--app-accent, #0ea89a);
+	border-color: rgb(255 255 255 / 0.16);
 	box-shadow:
 		inset 0 1px 0 rgb(255 255 255 / 0.035),
 		0 12px 28px rgb(0 0 0 / 0.22),
-		0 0 0 1px var(--app-accent-ring, rgb(14 168 154 / 0.28));
+		0 0 0 1px rgb(255 255 255 / 0.06);
+}
+
+html[data-theme="dark"] .application-list-row {
+	border-color: rgb(255 255 255 / 0.07);
+}
+
+html[data-theme="dark"] .upcoming-event-group {
+	border-color: rgb(255 255 255 / 0.075);
+	box-shadow:
+		inset 0 1px 0 rgb(255 255 255 / 0.025),
+		0 10px 24px rgb(0 0 0 / 0.14);
+}
+
+html[data-theme="dark"] .upcoming-event-card:hover {
+	background-color: rgb(255 255 255 / 0.035);
+}
+
+html[data-theme="dark"] .application-event-chip,
+html[data-theme="dark"] .application-event-icon {
+	background-color: rgb(255 255 255 / 0.035);
+	color: var(--text-body);
+	--tw-ring-color: rgb(255 255 255 / 0.14);
+}
+
+html[data-theme="dark"] .application-event-chip-follow_up,
+html[data-theme="dark"] .application-event-icon-follow_up {
+	background-color: rgb(245 158 11 / 0.1);
+	color: #fde68a;
+	--tw-ring-color: rgb(245 158 11 / 0.28);
+}
+
+html[data-theme="dark"] .application-event-chip-deadline,
+html[data-theme="dark"] .application-event-icon-deadline {
+	background-color: rgb(244 63 94 / 0.1);
+	color: #fecdd3;
+	--tw-ring-color: rgb(244 63 94 / 0.24);
+}
+
+html[data-theme="dark"] .application-event-chip-interview,
+html[data-theme="dark"] .application-event-icon-interview {
+	background-color: rgb(139 92 246 / 0.11);
+	color: #ddd6fe;
+	--tw-ring-color: rgb(139 92 246 / 0.25);
+}
+
+html[data-theme="dark"] .application-event-chip-offer_deadline,
+html[data-theme="dark"] .application-event-icon-offer_deadline {
+	background-color: rgb(16 185 129 / 0.1);
+	color: #bbf7d0;
+	--tw-ring-color: rgb(16 185 129 / 0.24);
 }
 
 html[data-theme="dark"] .icon-button-neutral:hover {
@@ -1448,4 +1498,100 @@ html[data-theme="light"] .marketing-menu-backdrop {
 
 .landing-nav:has(.marketing-menu-backdrop) > div:last-child {
 	filter: none;
+}
+
+html[data-theme="dark"] .application-event-chip,
+html[data-theme="dark"] .application-event-icon {
+	background-color: rgb(255 255 255 / 0.035);
+	color: var(--text-body);
+	--tw-ring-color: rgb(255 255 255 / 0.13);
+}
+
+html[data-theme="dark"] .application-event-chip-follow_up,
+html[data-theme="dark"] .application-event-icon-follow_up {
+	background-color: rgb(245 158 11 / 0.1);
+	color: #fde68a;
+	--tw-ring-color: rgb(245 158 11 / 0.24);
+}
+
+html[data-theme="dark"] .application-event-chip-deadline,
+html[data-theme="dark"] .application-event-icon-deadline {
+	background-color: rgb(244 63 94 / 0.1);
+	color: #fecdd3;
+	--tw-ring-color: rgb(244 63 94 / 0.22);
+}
+
+html[data-theme="dark"] .application-event-chip-interview,
+html[data-theme="dark"] .application-event-icon-interview {
+	background-color: rgb(139 92 246 / 0.11);
+	color: #ddd6fe;
+	--tw-ring-color: rgb(139 92 246 / 0.22);
+}
+
+html[data-theme="dark"] .application-event-chip-offer_deadline,
+html[data-theme="dark"] .application-event-icon-offer_deadline {
+	background-color: rgb(16 185 129 / 0.1);
+	color: #bbf7d0;
+	--tw-ring-color: rgb(16 185 129 / 0.22);
+}
+
+html[data-theme="dark"] .kanban-application-card .ring-amber-200,
+html[data-theme="dark"] .application-list-row .ring-amber-200 {
+	--tw-ring-color: rgb(245 158 11 / 0.28);
+}
+
+html[data-theme="dark"] .kanban-application-card .ring-red-200,
+html[data-theme="dark"] .application-list-row .ring-red-200 {
+	--tw-ring-color: rgb(248 113 113 / 0.28);
+}
+
+html[data-theme="dark"] .kanban-application-card .ring-emerald-200,
+html[data-theme="dark"] .application-list-row .ring-emerald-200 {
+	--tw-ring-color: rgb(52 211 153 / 0.26);
+}
+
+html[data-theme="dark"] .kanban-application-card .status-badge-wishlist,
+html[data-theme="dark"] .application-list-row .status-badge-wishlist {
+	--tw-ring-color: rgb(125 211 252 / 0.3);
+}
+
+html[data-theme="dark"] .kanban-application-card .status-badge-saved,
+html[data-theme="dark"] .application-list-row .status-badge-saved {
+	--tw-ring-color: rgb(103 232 249 / 0.3);
+}
+
+html[data-theme="dark"] .kanban-application-card .status-badge-applied,
+html[data-theme="dark"] .application-list-row .status-badge-applied {
+	--tw-ring-color: rgb(165 180 252 / 0.32);
+}
+
+html[data-theme="dark"] .kanban-application-card .status-badge-assessment,
+html[data-theme="dark"] .application-list-row .status-badge-assessment {
+	--tw-ring-color: rgb(216 180 254 / 0.32);
+}
+
+html[data-theme="dark"] .kanban-application-card .status-badge-interviewing,
+html[data-theme="dark"] .application-list-row .status-badge-interviewing {
+	--tw-ring-color: rgb(252 211 77 / 0.32);
+}
+
+html[data-theme="dark"] .kanban-application-card .status-badge-offer,
+html[data-theme="dark"] .application-list-row .status-badge-offer {
+	--tw-ring-color: rgb(134 239 172 / 0.3);
+}
+
+html[data-theme="dark"] .kanban-application-card .status-badge-rejected,
+html[data-theme="dark"] .application-list-row .status-badge-rejected {
+	--tw-ring-color: rgb(253 164 175 / 0.3);
+}
+
+html[data-theme="dark"] .kanban-application-card .status-badge-withdrawn,
+html[data-theme="dark"] .application-list-row .status-badge-withdrawn {
+	--tw-ring-color: rgb(212 212 216 / 0.24);
+}
+
+html[data-theme="dark"] .kanban-application-card,
+html[data-theme="dark"] .application-list-row,
+html[data-theme="dark"] .upcoming-event-group {
+	border-color: rgb(255 255 255 / 0.075);
 }

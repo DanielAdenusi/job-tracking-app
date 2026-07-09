@@ -8,8 +8,16 @@ import { Logo } from "./ui/Logo";
 import { ButtonLink } from "./ui/Button";
 import { useAnimatedDisclosure } from "../hooks/useAnimatedDisclosure";
 
+function OpenAppOrAuthSkeleton() {
+	return (
+		<div className="hidden sm:flex items-center gap-2 sm:gap-3">
+			<div className="hidden animate-pulse rounded-lg bg-slate-200 h-10 w-10 sm:block sm:h-10 sm:w-20" />
+		</div>
+	);
+}
+
 export function MarketingNav() {
-	const { user } = useAuth();
+	const { user, isAuthLoading } = useAuth();
 	const { settings, saveSettings, isLoadingSettings } = useAccountSettings();
 	const {
 		isOpen: isMenuOpen,
@@ -94,7 +102,7 @@ export function MarketingNav() {
 						type="button"
 						onClick={() => void toggleTheme()}
 						disabled={isLoadingSettings}
-						className="grid h-10 w-10 place-items-center rounded-lg border border-(--landing-line) bg-(--landing-control) text-(--landing-text) transition hover:-translate-y-0.5 hover:border-(--landing-accent) disabled:cursor-not-allowed disabled:opacity-60 max-sm:flex max-sm:w-fit max-sm:gap-2 max-sm:px-3"
+						className="grid h-10 w-10 place-items-center rounded-lg border border-(--landing-line) bg-(--landing-control) text-(--landing-text) transition hover:-translate-y-0.5 hover:border-(--landing-accent) disabled:cursor-not-allowed disabled:opacity-60 max-sm:hidden"
 						aria-label={isDark ? "Use light mode" : "Use dark mode"}
 						title={isDark ? "Use light mode" : "Use dark mode"}
 					>
@@ -103,27 +111,20 @@ export function MarketingNav() {
 						) : (
 							<Moon size={18} strokeWidth={2.4} />
 						)}
-
-						<span
-							className={
-								user ? "hidden" : "sm:hidden font-bold text-sm"
-							}
-						>
-							{isDark ? "Light" : "Dark"}
-						</span>
 					</button>
 
-					{user ? (
+					{isAuthLoading ? (
+						<OpenAppOrAuthSkeleton />
+					) : user ? (
 						<ButtonLink
 							to="/dashboard"
 							variant="primary"
-							className="max-sm:hidden"
 							tone="accent"
 						>
 							Open app
 						</ButtonLink>
 					) : (
-						<div className="hidden sm:flex sm:items-center sm:gap-2">
+						<div className="sm:flex sm:items-center sm:gap-2">
 							<ButtonLink
 								to="/login"
 								variant="secondary"
@@ -136,7 +137,7 @@ export function MarketingNav() {
 								to="/signup"
 								variant="primary"
 								tone="accent"
-								className="hidden md:inline-flex"
+								className="hidden! sm:inline-flex!"
 							>
 								Sign up
 							</ButtonLink>

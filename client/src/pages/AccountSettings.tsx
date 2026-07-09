@@ -64,6 +64,10 @@ import {
 } from "../lib/accountSettings";
 import { getAuthErrorMessage } from "./Auth/sharedAuthUi";
 import type { Application, CreateApplicationInput } from "../types/application";
+import {
+	disablePushSubscription,
+	enablePushSubscription,
+} from "../services/pushSubscriptionsApi";
 
 type DangerAction =
 	| "reset_preferences"
@@ -132,6 +136,19 @@ function buildApplicationsCsv(applications: Application[]) {
 		{
 			label: "Deadline At",
 			value: (application) => application.deadlineAt,
+		},
+		{
+			label: "Interview At",
+			value: (application) => application.interviewAt,
+		},
+		{
+			label: "Interview Location",
+			value: (application) => application.interviewLocation,
+		},
+		{
+			label: "Notifications Enabled",
+			value: (application) =>
+				application.notificationsEnabled ? "Yes" : "No",
 		},
 		{ label: "Created At", value: (application) => application.createdAt },
 	];
@@ -506,6 +523,10 @@ export function AccountSettingsPage() {
 		useState(false);
 	const [isSendingVerification, setIsSendingVerification] = useState(false);
 	const [isRefreshingUser, setIsRefreshingUser] = useState(false);
+	const [isDisableNotificationsModalOpen, setIsDisableNotificationsModalOpen] =
+		useState(false);
+	const [isDisablingNotifications, setIsDisablingNotifications] =
+		useState(false);
 	const [currentPassword, setCurrentPassword] = useState("");
 	const [newPassword, setNewPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
@@ -818,9 +839,17 @@ export function AccountSettingsPage() {
 						followUpAt: application.followUpAt || undefined,
 						deadlineAt: application.deadlineAt || undefined,
 						interviewAt: application.interviewAt || undefined,
+						interviewLocation:
+							application.interviewLocation || undefined,
+						interviewMode: application.interviewMode || undefined,
 						rejectedAt: application.rejectedAt || undefined,
 						offerDeadlineAt:
 							application.offerDeadlineAt || undefined,
+						notificationsEnabled: application.notificationsEnabled,
+						reminderLeadMinutes:
+							application.reminderLeadMinutes ?? undefined,
+						secondReminderLeadMinutes:
+							application.secondReminderLeadMinutes ?? undefined,
 					}),
 				),
 			);
@@ -847,7 +876,7 @@ export function AccountSettingsPage() {
 
 	async function handleBrowserNotificationToggle(checked: boolean) {
 		if (!checked) {
-			updateSetting("browserNotificationsEnabled", false);
+			setIsDisableNotificationsModalOpen(true);
 			return;
 		}
 
@@ -865,11 +894,34 @@ export function AccountSettingsPage() {
 		setNotificationPermission(permission);
 
 		if (permission === "granted") {
+			await enablePushSubscription();
 			updateSetting("browserNotificationsEnabled", true);
 			showToast("Browser notifications enabled.", "success");
 		} else {
 			updateSetting("browserNotificationsEnabled", false);
 			showToast("Notifications are blocked in this browser.", "error");
+		}
+	}
+
+	async function confirmDisableNotifications() {
+		try {
+			setIsDisablingNotifications(true);
+			await disablePushSubscription();
+			updateSetting("browserNotificationsEnabled", false);
+			setIsDisableNotificationsModalOpen(false);
+			showToast(
+				"Browser notifications disabled. Remember to save this change.",
+				"success",
+			);
+		} catch (error) {
+			showToast(
+				error instanceof Error
+					? error.message
+					: "Could not disable browser notifications.",
+				"error",
+			);
+		} finally {
+			setIsDisablingNotifications(false);
 		}
 	}
 
@@ -1966,6 +2018,21 @@ export function AccountSettingsPage() {
 				}
 				onCancel={() => setDangerAction(null)}
 				onConfirm={confirmDangerAction}
+			/>
+
+			<ConfirmationModal
+				isOpen={isDisableNotificationsModalOpen}
+				title="Disable browser notifications?"
+				description="Notifications are vital to the operation of this service because they power reminders for follow-ups, deadlines, interviews, and offer decisions. If you disable them, JobMarkr may not be able to alert you before important application events."
+				confirmLabel="Disable notifications"
+				cancelLabel="Keep notifications on"
+				isProcessing={isDisablingNotifications}
+				onCancel={() => {
+					if (!isDisablingNotifications) {
+						setIsDisableNotificationsModalOpen(false);
+					}
+				}}
+				onConfirm={() => void confirmDisableNotifications()}
 			/>
 		</section>
 	);

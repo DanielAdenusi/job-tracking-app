@@ -95,3 +95,52 @@ self.addEventListener("fetch", (event) => {
 		}),
 	);
 });
+
+self.addEventListener("push", (event) => {
+	const payload = event.data
+		? event.data.json()
+		: {
+				title: "JobMarkr reminder",
+				body: "You have an application reminder.",
+			};
+	const title = payload.title || "JobMarkr reminder";
+	const options = {
+		body: payload.body,
+		icon: payload.icon || "/favicon/favicon-bg-192.png",
+		badge: payload.badge || "/favicon/favicon-bg-192.png",
+		tag: payload.tag,
+		data: {
+			url: payload.url || "/dashboard",
+			...(payload.data || {}),
+		},
+	};
+
+	event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+	event.notification.close();
+
+	const targetUrl = new URL(
+		event.notification.data?.url || "/dashboard",
+		self.location.origin,
+	).href;
+
+	event.waitUntil(
+		self.clients
+			.matchAll({
+				type: "window",
+				includeUncontrolled: true,
+			})
+			.then((clients) => {
+				for (const client of clients) {
+					if ("focus" in client) {
+						client.navigate(targetUrl);
+						return client.focus();
+					}
+				}
+
+				return self.clients.openWindow(targetUrl);
+			}),
+	);
+});

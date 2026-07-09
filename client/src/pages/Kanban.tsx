@@ -23,6 +23,7 @@ import {
 import { EmptyState } from "../components/ui/Surface";
 import { SearchInput, Select } from "../components/ui/FormControls";
 import { Button, ButtonLink } from "../components/ui/Button";
+import { ApplicationEventChips } from "../components/ApplicationEventChips";
 
 import {
 	APPLICATION_STATUSES,
@@ -806,6 +807,13 @@ export function KanbanPage() {
 																	application.company
 																}
 															</p>
+
+															<ApplicationEventChips
+																application={
+																	application
+																}
+																limit={2}
+															/>
 
 															<div
 																aria-hidden="true"

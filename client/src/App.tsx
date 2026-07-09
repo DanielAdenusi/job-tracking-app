@@ -5,6 +5,7 @@ import { AuthLayout } from "./layout/AuthLayout";
 import { KanbanPage } from "./pages/Kanban";
 import { DashboardPage } from "./pages/Dashboard";
 import { ApplicationsPage } from "./pages/Applications";
+import { UpcomingPage } from "./pages/Upcoming";
 import { NewApplicationPage } from "./pages/NewApplication";
 import { ApplicationDetailsPage } from "./pages/ApplicationDetails";
 import { AccountSettingsPage } from "./pages/AccountSettings";
@@ -98,6 +99,7 @@ function App() {
 						path="/applications"
 						element={<ApplicationsPage />}
 					/>
+					<Route path="/upcoming" element={<UpcomingPage />} />
 					<Route
 						path="/applications/new"
 						element={<NewApplicationPage />}

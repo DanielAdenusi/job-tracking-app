@@ -9,6 +9,7 @@ import {
 	CalendarCheck,
 	CalendarClock,
 	CalendarDays,
+	CalendarPlus,
 	Check,
 	ExternalLink,
 	FileText,
@@ -34,6 +35,7 @@ import {
 import {
 	deleteApplication,
 	getApplication,
+	markApplicationVisited,
 	updateApplicationStatus,
 } from "../services/applicationsApi";
 import { isLocalApplicationId } from "../services/applicationOfflineStore";
@@ -43,6 +45,7 @@ import type { ApplicationStatusTransition } from "../types/application";
 import { ConfirmationModal } from "../components/ConfirmationModal";
 import { Button, ButtonLink } from "../components/ui/Button";
 import { APP_NAME } from "../constants/pageTitle";
+import { downloadApplicationCalendar } from "../services/calendarExport";
 
 const STATUS_ADVANCE_ORDER: ApplicationStatus[] = [
 	"wishlist",
@@ -468,6 +471,18 @@ export function ApplicationDetailsPage() {
 				setError(null);
 				const data = await getApplication(id);
 				setApplication(data);
+
+				if (!data.visitedAt) {
+					try {
+						const visitedApplication = await markApplicationVisited(
+							data.id,
+						);
+						setApplication(visitedApplication);
+						window.dispatchEvent(new Event("applications:changed"));
+					} catch {
+						window.dispatchEvent(new Event("applications:changed"));
+					}
+				}
 			} catch (err) {
 				setError(
 					err instanceof Error
@@ -715,6 +730,19 @@ export function ApplicationDetailsPage() {
 						</ButtonLink>
 
 						<Button
+							type="button"
+							variant="secondary"
+							tone="neutral"
+							className="w-full sm:w-auto"
+							icon={<CalendarPlus size={16} strokeWidth={2.5} />}
+							onClick={() =>
+								downloadApplicationCalendar(application)
+							}
+						>
+							Add to calendar
+						</Button>
+
+						<Button
 							onClick={() => setIsDeleteModalOpen(true)}
 							tone="danger"
 							className="max-sm:w-full"
@@ -803,6 +831,35 @@ export function ApplicationDetailsPage() {
 							accent="amber"
 						>
 							{formatDate(application.followUpAt)}
+						</DetailField>
+
+						<DetailField
+							icon={CalendarDays}
+							label="Deadline"
+							accent="amber"
+						>
+							{formatDate(application.deadlineAt)}
+						</DetailField>
+
+						<DetailField
+							icon={CalendarClock}
+							label="Interview"
+							accent="violet"
+						>
+							{application.interviewAt
+								? formatTimelineTimestamp(
+										application.interviewAt,
+									)
+								: "Not specified"}
+						</DetailField>
+
+						<DetailField
+							icon={MapPin}
+							label="Interview Place"
+							accent="cyan"
+						>
+							{application.interviewLocation ||
+								formatOption(application.interviewMode)}
 						</DetailField>
 
 						<DetailField icon={Timer} label="Hours" accent="cyan">

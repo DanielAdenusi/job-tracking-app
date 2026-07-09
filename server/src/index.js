@@ -7,6 +7,7 @@ import userRoutes from "./routes/user.routes.js";
 import { pool } from "./db/pool.js";
 import { requireAuth } from "./middleware/requireAuth.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { startApplicationNotificationScheduler } from "./services/notificationScheduler.service.js";
 
 dotenv.config();
 
@@ -69,4 +70,5 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
 	console.log(`API running on port ${PORT}`);
+	startApplicationNotificationScheduler();
 });

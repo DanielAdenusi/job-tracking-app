@@ -2,6 +2,7 @@ import { apiFetch } from "../lib/api";
 import type { Application } from "../types/application";
 import type { DashboardStats } from "../types/dashboard";
 import { getCachedApplications } from "./applicationOfflineStore";
+import { getApplicationEvents } from "./applicationEvents";
 
 function toDashboardSummary(application: Application) {
 	return {
@@ -38,6 +39,21 @@ function buildCachedDashboardStats(
 		)
 		.slice(0, 5)
 		.map(toDashboardSummary);
+	const reminderDigest = applications
+		.flatMap((application) =>
+			getApplicationEvents(application).map((event) => ({
+				...toDashboardSummary(application),
+				eventKind: event.kind,
+				eventAt: event.start.toISOString(),
+			})),
+		)
+		.filter((event) => new Date(event.eventAt) >= now)
+		.sort(
+			(first, second) =>
+				new Date(first.eventAt).getTime() -
+				new Date(second.eventAt).getTime(),
+		)
+		.slice(0, 5);
 
 	return {
 		totalApplications: applications.length,
@@ -70,6 +86,7 @@ function buildCachedDashboardStats(
 			.slice(0, 5)
 			.map(toDashboardSummary),
 		upcomingFollowUps,
+		reminderDigest,
 		isOffline: true,
 	};
 }

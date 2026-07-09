@@ -5,6 +5,7 @@ import {
 	createApplication,
 	updateApplication,
 	updateApplicationStatus,
+	markApplicationVisited,
 	deleteApplication,
 	deleteApplicationsByUser,
 } from "../services/applications.service.js";
@@ -139,6 +140,25 @@ export async function updateApplicationStatusController(req, res, next) {
 			req.user.id,
 			req.params.id,
 			status,
+		);
+
+		if (!application) {
+			return res.status(404).json({
+				message: "Application not found",
+			});
+		}
+
+		res.json(application);
+	} catch (error) {
+		next(error);
+	}
+}
+
+export async function markApplicationVisitedController(req, res, next) {
+	try {
+		const application = await markApplicationVisited(
+			req.user.id,
+			req.params.id,
 		);
 
 		if (!application) {

@@ -40,6 +40,26 @@ export function LoginPage() {
 		}
 	}, [user, navigate, redirectTo]);
 
+	useEffect(() => {
+		if (!isSigningInWithGoogle) return;
+
+		const timeout = window.setTimeout(() => {
+			setIsSigningInWithGoogle(false);
+		}, 30000);
+		const handleFocus = () => {
+			window.setTimeout(() => {
+				setIsSigningInWithGoogle(false);
+			}, 1500);
+		};
+
+		window.addEventListener("focus", handleFocus);
+
+		return () => {
+			window.clearTimeout(timeout);
+			window.removeEventListener("focus", handleFocus);
+		};
+	}, [isSigningInWithGoogle]);
+
 	async function handleEmailLogin(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 

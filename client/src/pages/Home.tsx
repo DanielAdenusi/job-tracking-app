@@ -1,8 +1,11 @@
+import { useEffect, useState } from "react";
 import {
 	ArrowRight,
 	BriefcaseBusiness,
+	CalendarClock,
 	Clock3,
 	Columns3,
+	Download,
 	FileText,
 	LayoutDashboard,
 	Plus,
@@ -17,6 +20,14 @@ import { MarketingNav } from "../components/MarketingNav";
 import { ButtonLink } from "../components/ui/Button";
 import { APP_NAME } from "../constants/pageTitle";
 import { Logo } from "../components/ui/Logo";
+
+type BeforeInstallPromptEvent = Event & {
+	prompt: () => Promise<void>;
+	userChoice: Promise<{
+		outcome: "accepted" | "dismissed";
+		platform: string;
+	}>;
+};
 
 const featureCards = [
 	{
@@ -88,6 +99,7 @@ function BrowserPreview() {
 							["Dashboard", LayoutDashboard, true],
 							["Applications", BriefcaseBusiness, false],
 							["Kanban", Columns3, false],
+							["Upcoming", CalendarClock, false],
 							["Add Application", Plus, false],
 						].map(([label, Icon, active]) => {
 							const NavIcon = Icon as typeof LayoutDashboard;
@@ -258,11 +270,77 @@ function BrowserPreview() {
 }
 
 export function HomePage() {
+	const [installPrompt, setInstallPrompt] =
+		useState<BeforeInstallPromptEvent | null>(null);
+
+	useEffect(() => {
+		function handleBeforeInstallPrompt(event: Event) {
+			event.preventDefault();
+			setInstallPrompt(event as BeforeInstallPromptEvent);
+		}
+
+		window.addEventListener(
+			"beforeinstallprompt",
+			handleBeforeInstallPrompt,
+		);
+
+		return () => {
+			window.removeEventListener(
+				"beforeinstallprompt",
+				handleBeforeInstallPrompt,
+			);
+		};
+	}, []);
+
+	async function handleInstallApp() {
+		if (!installPrompt) return;
+
+		await installPrompt.prompt();
+		const choice = await installPrompt.userChoice;
+
+		if (choice.outcome === "accepted") {
+			setInstallPrompt(null);
+		}
+	}
+
 	return (
 		<div className="landing-page min-h-screen bg-(--landing-bg) text-(--landing-text)">
 			<MarketingNav />
 
 			<main>
+				{installPrompt && (
+					<section className="border-b border-(--landing-line) bg-(--landing-section) px-5 py-4 sm:px-6 lg:px-8">
+						<div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+							<div>
+								<p className="text-sm font-black text-(--landing-text)">
+									Install {APP_NAME} on this device
+								</p>
+								<p className="mt-1 text-sm font-semibold text-(--landing-muted)">
+									Use it like an app and keep reminders,
+									offline access, and your tracker close by.
+								</p>
+							</div>
+							<div className="flex flex-wrap gap-2">
+								<button
+									type="button"
+									onClick={() => void handleInstallApp()}
+									className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-(--landing-accent) px-4 text-sm font-black text-white shadow-(--landing-accent-shadow) transition hover:-translate-y-0.5"
+								>
+									<Download size={16} strokeWidth={2.5} />
+									Install app
+								</button>
+								<ButtonLink
+									to="/help#install"
+									variant="secondary"
+									tone="neutral"
+								>
+									Manual guide
+								</ButtonLink>
+							</div>
+						</div>
+					</section>
+				)}
+
 				<section className="mx-auto max-w-7xl px-5 pb-16 pt-20 text-center sm:px-6 lg:px-8 lg:pb-24 lg:pt-28">
 					<div className="mx-auto inline-flex items-center gap-2 rounded-full border border-(--landing-accent-ring) bg-(--landing-accent-soft) px-4 py-2 text-sm font-extrabold text-(--landing-accent)">
 						<Sparkles size={16} strokeWidth={2.5} />

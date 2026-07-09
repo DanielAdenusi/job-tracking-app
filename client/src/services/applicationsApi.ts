@@ -13,6 +13,7 @@ import {
 	getCachedApplication,
 	getCachedApplications,
 	isLocalApplicationId,
+	markCachedApplicationVisited,
 	saveApplicationsSnapshot,
 	syncPendingCreates,
 	updateCachedApplication,
@@ -146,6 +147,21 @@ export async function updateApplicationStatus(
 	const application = await apiFetch<Application>(`/applications/${id}/status`, {
 		method: "PATCH",
 		body: JSON.stringify({ status }),
+	});
+	upsertCachedApplication(application);
+
+	return application;
+}
+
+export async function markApplicationVisited(id: string) {
+	if (isLocalApplicationId(id)) {
+		const application = markCachedApplicationVisited(id);
+
+		if (application) return application;
+	}
+
+	const application = await apiFetch<Application>(`/applications/${id}/visited`, {
+		method: "PATCH",
 	});
 	upsertCachedApplication(application);
 
