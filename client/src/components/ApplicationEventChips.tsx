@@ -58,6 +58,7 @@ export function ApplicationEventChips({
 					<span
 						key={event.id}
 						className={[
+							`application-event-chip application-event-chip-${event.kind}`,
 							"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.68rem] font-bold ring-1",
 							eventStyles[event.kind],
 						].join(" ")}

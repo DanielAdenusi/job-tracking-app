@@ -330,7 +330,7 @@ export function HomePage() {
 									Install app
 								</button>
 								<ButtonLink
-									to="/help"
+									to="/help#install"
 									variant="secondary"
 									tone="neutral"
 								>

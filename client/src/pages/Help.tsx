@@ -1,15 +1,20 @@
 import {
 	BookOpen,
+	Bell,
 	CheckCircle2,
 	Clock3,
 	Columns3,
+	Download,
 	LifeBuoy,
 	ShieldCheck,
 } from "lucide-react";
+import { useEffect } from "react";
+import { useLocation } from "react-router";
 
 import { MarketingFooter } from "../components/MarketingFooter";
 import { MarketingNav } from "../components/MarketingNav";
 import { ButtonLink } from "../components/ui/Button";
+import { useAuth } from "../auth/useAuth";
 
 const helpSections = [
 	{
@@ -55,9 +60,37 @@ const faqs = [
 		question: "Can I export my applications?",
 		answer: "Yes. Account settings include CSV export for spreadsheets and JSON export for a fuller backup.",
 	},
+	{
+		question: "Where do I manage reminders and notifications?",
+		answer: "Open Account settings, then the Notifications tab. From there you can choose reminder types, browser delivery, and the default reminder timing.",
+	},
 ] as const;
 
 export function HelpPage() {
+	const { user } = useAuth();
+	const location = useLocation();
+
+	useEffect(() => {
+		if (!location.hash) return;
+
+		const target = document.getElementById(location.hash.slice(1));
+		if (!target) return;
+
+		const scrollTimer = window.setTimeout(() => {
+			const header = document.querySelector<HTMLElement>(".landing-nav");
+			const headerOffset = (header?.offsetHeight ?? 80) + 32;
+			const targetTop =
+				target.getBoundingClientRect().top + window.scrollY;
+
+			window.scrollTo({
+				top: Math.max(targetTop - headerOffset, 0),
+				behavior: "smooth",
+			});
+		}, 0);
+
+		return () => window.clearTimeout(scrollTimer);
+	}, [location.hash]);
+
 	return (
 		<div className="landing-page min-h-screen bg-(--landing-bg) text-(--landing-text)">
 			<MarketingNav />
@@ -135,6 +168,80 @@ export function HelpPage() {
 								))}
 							</div>
 						</div>
+					</div>
+				</section>
+
+				<section className="mx-auto max-w-6xl px-5 py-16 sm:px-6 lg:px-8">
+					<div className="grid gap-5 lg:grid-cols-2">
+						<article
+							id="install"
+							className="scroll-mt-32 rounded-2xl border border-(--landing-line) bg-(--landing-card) p-6 sm:p-8"
+						>
+							<div className="grid h-12 w-12 place-items-center rounded-xl bg-(--landing-accent-soft) text-(--landing-accent)">
+								<Download size={24} strokeWidth={2.5} />
+							</div>
+							<h2 className="mt-6 text-2xl font-black">
+								Install JobMarkr as an app
+							</h2>
+							<p className="mt-3 text-sm font-semibold leading-6 text-(--landing-muted)">
+								If your browser supports installation, the home
+								page can show an install prompt. You can also
+								install it manually from your browser.
+							</p>
+							<ol className="mt-5 grid gap-3 text-sm font-semibold leading-6 text-(--landing-muted)">
+								<li>
+									<span className="font-black text-(--landing-text)">
+										1.
+									</span>{" "}
+									Open JobMarkr in Chrome, Edge, or another
+									PWA-capable browser.
+								</li>
+								<li>
+									<span className="font-black text-(--landing-text)">
+										2.
+									</span>{" "}
+									Use the browser menu or address-bar install
+									icon and choose Install app.
+								</li>
+								<li>
+									<span className="font-black text-(--landing-text)">
+										3.
+									</span>{" "}
+									Open the installed app and enable
+									notifications so reminders can work.
+								</li>
+							</ol>
+						</article>
+
+						<article className="rounded-2xl border border-(--landing-line) bg-(--landing-card) p-6 sm:p-8">
+							<div className="grid h-12 w-12 place-items-center rounded-xl bg-(--landing-accent-soft) text-(--landing-accent)">
+								<Bell size={24} strokeWidth={2.5} />
+							</div>
+							<h2 className="mt-6 text-2xl font-black">
+								Notification options
+							</h2>
+							<p className="mt-3 text-sm font-semibold leading-6 text-(--landing-muted)">
+								Notifications power follow-up, deadline,
+								assessment, interview, and offer reminders. You
+								can choose which reminder types are active and
+								how far ahead they fire.
+							</p>
+							<div className="mt-6">
+								<ButtonLink
+									to={
+										user
+											? "/account/notifications"
+											: "/login"
+									}
+									variant="primary"
+									tone="accent"
+								>
+									{user
+										? "Open notification settings"
+										: "Log in to manage notifications"}
+								</ButtonLink>
+							</div>
+						</article>
 					</div>
 				</section>
 

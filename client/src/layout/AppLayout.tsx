@@ -1097,6 +1097,14 @@ export function AppLayout() {
 								>
 									Not now
 								</Button>
+								<ButtonLink
+									to="/account/notifications"
+									variant="secondary"
+									size="sm"
+									tone="neutral"
+								>
+									Options
+								</ButtonLink>
 							</div>
 						</div>
 					</div>

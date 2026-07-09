@@ -165,7 +165,7 @@ export function UpcomingPage() {
 					{Object.entries(groupedEvents).map(([day, dayEvents]) => (
 						<section
 							key={day}
-							className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/40"
+							className="upcoming-event-group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/40"
 						>
 							<header className="border-b border-slate-100 bg-slate-50 px-5 py-3">
 								<h2 className="text-sm font-black text-slate-950">
@@ -185,10 +185,11 @@ export function UpcomingPage() {
 										<Link
 											key={event.id}
 											to={`/applications/${event.application.id}`}
-											className="grid gap-4 p-5 transition hover:bg-slate-50 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center"
+											className="upcoming-event-card grid gap-4 p-5 transition hover:bg-slate-50 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center"
 										>
 											<span
 												className={[
+													`application-event-icon application-event-icon-${event.kind}`,
 													"grid h-10 w-10 place-items-center rounded-lg ring-1",
 													eventStyles[event.kind],
 												].join(" ")}
