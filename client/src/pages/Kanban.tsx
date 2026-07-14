@@ -717,7 +717,7 @@ export function KanbanPage() {
 										</span>
 									</div>
 
-									<div className="grid min-h-0 content-start gap-3 overflow-y-auto p-1">
+									<div className="grid min-h-0 content-start gap-3 overflow-y-auto p-1 grid-cols-1">
 										{column.applications.length === 0 ? (
 											<div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-xs text-slate-400">
 												<p className="font-bold">
