@@ -23,6 +23,11 @@ import {
 
 let lastApplicationsLoadUsedCache = false;
 
+type ExtractApplicationOptions = {
+	url: string;
+	status: Extract<ApplicationStatus, "saved" | "applied">;
+};
+
 function createRemoteApplication(data: CreateApplicationInput) {
 	return apiFetch<Application>("/applications", {
 		method: "POST",
@@ -108,10 +113,13 @@ export async function createApplication(data: CreateApplicationInput) {
 	}
 }
 
-export function extractApplicationFromUrl(url: string) {
+export function extractApplicationFromUrl({
+	status,
+	url,
+}: ExtractApplicationOptions) {
 	return apiFetch<ExtractedApplicationDraft>("/applications/extract", {
 		method: "POST",
-		body: JSON.stringify({ url }),
+		body: JSON.stringify({ status, url }),
 	});
 }
 
