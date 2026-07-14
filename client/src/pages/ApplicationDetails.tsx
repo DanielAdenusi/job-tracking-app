@@ -951,7 +951,9 @@ export function ApplicationDetailsPage() {
 							)}
 						</div>
 
-						<div className="grid grid-cols-3 gap-5">
+						<div
+							className={`grid grid-cols-${Math.min(visibleJobDescriptionSections.length, 3)} gap-5`}
+						>
 							{visibleJobDescriptionSections.map((section) => (
 								<section
 									key={section.key}

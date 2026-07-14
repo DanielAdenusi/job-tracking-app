@@ -74,6 +74,8 @@ export async function createApplicationController(req, res, next) {
 export async function extractApplicationController(req, res, next) {
 	try {
 		const url = String(req.body?.url || "").trim();
+		const requestedStatus =
+			req.body?.status === "applied" ? "applied" : "saved";
 
 		if (!url) {
 			return res.status(400).json({
@@ -81,7 +83,9 @@ export async function extractApplicationController(req, res, next) {
 			});
 		}
 
-		const result = await extractApplicationFromUrl(url);
+		const result = await extractApplicationFromUrl(url, {
+			status: requestedStatus,
+		});
 
 		res.json(result);
 	} catch (error) {

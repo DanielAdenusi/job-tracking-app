@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
+	BookmarkPlus,
+	CheckCircle2,
 	Download,
 	FileSpreadsheet,
 	Link2,
@@ -23,6 +25,7 @@ import { Card } from "../components/ui/Surface";
 import { useToast } from "../components/ToastProvider";
 import { parseApplicationsSpreadsheet } from "../services/applicationSpreadsheetImport";
 import { downloadApplicationImportTemplate } from "../services/applicationImportTemplate";
+import type { ApplicationStatus } from "../constants/applicationOptions";
 
 const sampleCompanies = [
 	"Northstar Labs",
@@ -124,7 +127,9 @@ function createSampleApplication(index = 0): CreateApplicationInput {
 		interviewAt:
 			index % 3 === 0 ? `${addDays(index + 7)}T10:00` : undefined,
 		interviewLocation:
-			index % 3 === 0 ? "Google Meet - link in recruiter email" : undefined,
+			index % 3 === 0
+				? "Google Meet - link in recruiter email"
+				: undefined,
 		interviewMode: index % 3 === 0 ? "remote" : undefined,
 		notificationsEnabled: index % 2 === 0,
 		reminderLeadMinutes: 1440,
@@ -132,9 +137,33 @@ function createSampleApplication(index = 0): CreateApplicationInput {
 	};
 }
 
+type ApplicationDraftForForm = Partial<CreateApplicationInput> & {
+	jobDescription?: CreateApplicationInput["jobDescription"] | string;
+};
+
+function normalizeDraftJobDescription(
+	jobDescription: ApplicationDraftForForm["jobDescription"],
+) {
+	if (typeof jobDescription === "string") {
+		return {
+			role: [jobDescription],
+			keyResponsibilities: [],
+			lookingFor: [],
+			desirable: [],
+			whyJoinUs: [],
+		};
+	}
+
+	return jobDescription;
+}
+
 function applicationToFormValues(
-	application: Partial<CreateApplicationInput>,
+	application: ApplicationDraftForForm,
 ): Partial<ApplicationFormValues> {
+	const jobDescription = normalizeDraftJobDescription(
+		application.jobDescription,
+	);
+
 	return {
 		company: application.company ?? "",
 		role: application.role ?? "",
@@ -143,15 +172,12 @@ function applicationToFormValues(
 		salary: application.salary ?? "",
 		hoursPerWeek: application.hoursPerWeek ?? "",
 		jobReferenceId: application.jobReferenceId ?? "",
-		jobDescriptionRole: application.jobDescription?.role?.join("\n") ?? "",
+		jobDescriptionRole: jobDescription?.role?.join("\n") ?? "",
 		jobDescriptionResponsibilities:
-			application.jobDescription?.keyResponsibilities?.join("\n") ?? "",
-		jobDescriptionLookingFor:
-			application.jobDescription?.lookingFor?.join("\n") ?? "",
-		jobDescriptionDesirable:
-			application.jobDescription?.desirable?.join("\n") ?? "",
-		jobDescriptionWhyJoinUs:
-			application.jobDescription?.whyJoinUs?.join("\n") ?? "",
+			jobDescription?.keyResponsibilities?.join("\n") ?? "",
+		jobDescriptionLookingFor: jobDescription?.lookingFor?.join("\n") ?? "",
+		jobDescriptionDesirable: jobDescription?.desirable?.join("\n") ?? "",
+		jobDescriptionWhyJoinUs: jobDescription?.whyJoinUs?.join("\n") ?? "",
 		status: application.status ?? "saved",
 		priority: application.priority ?? "medium",
 		employmentType: application.employmentType ?? "",
@@ -188,6 +214,8 @@ export function NewApplicationPage() {
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [isExtracting, setIsExtracting] = useState(false);
 	const [urlToExtract, setUrlToExtract] = useState("");
+	const [extractionStatus, setExtractionStatus] =
+		useState<Extract<ApplicationStatus, "saved" | "applied">>("saved");
 	const [extractionMessage, setExtractionMessage] = useState<string | null>(
 		null,
 	);
@@ -218,10 +246,15 @@ export function NewApplicationPage() {
 	function handleFillDetails() {
 		setError(null);
 		setDraftValues(applicationToFormValues(createSampleApplication()));
-		showToast("Filled the form with development sample details.", "success");
+		showToast(
+			"Filled the form with development sample details.",
+			"success",
+		);
 	}
 
-	async function handleExtractFromUrl(event: React.FormEvent<HTMLFormElement>) {
+	async function handleExtractFromUrl(
+		event: React.FormEvent<HTMLFormElement>,
+	) {
 		event.preventDefault();
 
 		try {
@@ -229,7 +262,10 @@ export function NewApplicationPage() {
 			setExtractionMessage(null);
 			setIsExtracting(true);
 
-			const result = await extractApplicationFromUrl(urlToExtract);
+			const result = await extractApplicationFromUrl({
+				url: urlToExtract,
+				status: extractionStatus,
+			});
 			const draft = applicationToFormValues({
 				...result.application,
 				jobUrl: result.application.jobUrl || urlToExtract,
@@ -372,7 +408,9 @@ export function NewApplicationPage() {
 			: []),
 		{
 			id: "download-template",
-			label: isDownloadingTemplate ? "Downloading..." : "Download example",
+			label: isDownloadingTemplate
+				? "Downloading..."
+				: "Download example",
 			icon: Download,
 			variant: "secondary" as const,
 		},
@@ -464,6 +502,45 @@ export function NewApplicationPage() {
 					>
 						{isExtracting ? "Extracting..." : "Extract details"}
 					</Button>
+					<div className="grid gap-2 lg:col-span-2">
+						<span className="text-sm font-bold text-slate-700">
+							Import as
+						</span>
+						<div className="grid gap-2 sm:grid-cols-2">
+							{[
+								{
+									status: "saved" as const,
+									label: "Save for later",
+									icon: BookmarkPlus,
+								},
+								{
+									status: "applied" as const,
+									label: "Already applied",
+									icon: CheckCircle2,
+								},
+							].map((option) => (
+								<button
+									key={option.status}
+									type="button"
+									aria-pressed={
+										extractionStatus === option.status
+									}
+									className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-4 text-sm font-extrabold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-(--app-accent-ring) ${
+										extractionStatus === option.status
+											? "border-(--app-accent) bg-(--app-accent-soft) text-(--app-accent)  shadow-(--app-accent-shadow)"
+											: "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
+									}`}
+									disabled={isBusy}
+									onClick={() =>
+										setExtractionStatus(option.status)
+									}
+								>
+									<option.icon size={16} strokeWidth={2.5} />
+									{option.label}
+								</button>
+							))}
+						</div>
+					</div>
 				</form>
 				{extractionMessage && (
 					<div className="mt-4 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm font-semibold leading-6 text-teal-900">
